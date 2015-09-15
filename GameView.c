@@ -13,13 +13,17 @@ struct gameView {
     //All information required to "view" the game here
     //Get all this from functions below
     //e.g get round will simply gameview->round,
-    //int round; will be in gameView
+    int round;
+    int currentPlayer;
+    int score;
     ////////////////////////////////////////////
     ///////Structs
     //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
-    //int *points
-    //int *health
-    //int *location
+    int *health
+    int *location
+    //Not sure on how to store path history/past plays, either as 5 arrays as given
+    //or a linked list, we will have to implement our own ll though(easier to keep
+    //track of turns)
 };
 
 
@@ -46,29 +50,29 @@ void disposeGameView(GameView toBeDeleted)
 // Get the current round
 Round getRound(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    //Done feel free to change
+    return currentView->round;
 }
 
 // Get the id of current player - ie whose turn is it?
 PlayerID getCurrentPlayer(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    //Done feel free to change
+    return currentView->currentPlayer;
 }
 
-// Get the current score
+    //Done feel free to change
 int getScore(GameView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    //Done feel free to change
+    return currentView->score;
 }
 
 // Get the current health points for a given player
 int getHealth(GameView currentView, PlayerID player)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    //Done feel free to change
+    return health[player];
 }
 
 // Get the current location id of a given player
