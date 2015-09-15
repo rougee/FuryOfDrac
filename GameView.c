@@ -15,7 +15,11 @@ struct gameView {
     //e.g get round will simply gameview->round,
     //int round; will be in gameView
     ////////////////////////////////////////////
-    int hello;
+    ///////Structs
+    //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+    //int *points
+    //int *health
+    //int *location
 };
 
 
