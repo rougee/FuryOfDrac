@@ -6,12 +6,18 @@
 #include "Game.h"
 #include "GameView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
-     
+
 struct gameView {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+    ////////////////////////////////////////////
+    //All information required to "view" the game here
+    //Get all this from functions below
+    //e.g get round will simply gameview->round,
+    //int round; will be in gameView
+    ////////////////////////////////////////////
     int hello;
 };
-     
+
 
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
@@ -21,8 +27,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     gameView->hello = 42;
     return gameView;
 }
-     
-     
+
+
 // Frees all memory previously allocated for the GameView toBeDeleted
 void disposeGameView(GameView toBeDeleted)
 {
