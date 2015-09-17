@@ -5,6 +5,8 @@
 #include "Globals.h"
 #include "Game.h"
 #include "GameView.h"
+#include "string.h"
+
 // #include "Map.h" ... if you decide to use the Map ADT
 
 struct gameView {
@@ -19,8 +21,9 @@ struct gameView {
     ////////////////////////////////////////////
     ///////Structs
     //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
-    int *health
-    int *location
+    int *health;
+    int **path;
+    int *upto;
     //Not sure on how to store path history/past plays, either as 5 arrays as given
     //or a linked list, we will have to implement our own ll though(easier to keep
     //track of turns)
@@ -32,7 +35,19 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     GameView gameView = malloc(sizeof(struct gameView));
-    gameView->hello = 42;
+    //strlen() length, loop through
+    int pastPlaysSize = strlen(pastplays);
+    //Round
+    gameView->round = pastPlaysSize/40;
+    //Current Player
+    gameView->currentPlayer = (pastPlaysSize/8)%5;
+    int i;
+    for(i=0;i<pastPlaysSize;i+8){
+
+
+
+    }
+
     return gameView;
 }
 
