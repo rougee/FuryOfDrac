@@ -19,6 +19,7 @@ struct gameView {
     ////////////////////////////////////////////
     ///////Structs
     //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+    //To access drac's health or location health[DRAC] || health[4]
     int *health
     int *location
     //Not sure on how to store path history/past plays, either as 5 arrays as given
