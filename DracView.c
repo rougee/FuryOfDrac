@@ -7,12 +7,22 @@
 #include "GameView.h"
 #include "DracView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
-     
+
 struct dracView {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    int hello;
+    //Store traps and vamps+gameview
+    int round;
+    int currentPlayer;
+    int score;
+    ////////////////////////////////////////////
+    ///////Structs
+    //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+    int *health;
+    int *location;
+    int *locationTraps;
+    int *locationVamps;
 };
-     
+
 
 // Creates a new DracView to summarise the current state of the game
 DracView newDracView(char *pastPlays, PlayerMessage messages[])
@@ -22,8 +32,8 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
     dracView->hello = 42;
     return dracView;
 }
-     
-     
+
+
 // Frees all memory previously allocated for the DracView toBeDeleted
 void disposeDracView(DracView toBeDeleted)
 {
@@ -38,21 +48,21 @@ void disposeDracView(DracView toBeDeleted)
 Round giveMeTheRound(DracView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->round;
 }
 
 // Get the current score
 int giveMeTheScore(DracView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->score;
 }
 
 // Get the current health points for a given player
 int howHealthyIs(DracView currentView, PlayerID player)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->health[player];
 }
 
 // Get the current location id of a given player

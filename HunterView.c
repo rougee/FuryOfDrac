@@ -7,12 +7,20 @@
 #include "GameView.h"
 #include "HunterView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
-     
+
 struct hunterView {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    int hello;
+    int round;
+    int currentPlayer;
+    int score;
+    ////////////////////////////////////////////
+    ///////Structs
+    //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+    int *health;
+    int *location;
+    //possibly location of traps and vamps?
 };
-     
+
 
 // Creates a new HunterView to summarise the current state of the game
 HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
@@ -22,8 +30,8 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
     hunterView->hello = 42;
     return hunterView;
 }
-     
-     
+
+
 // Frees all memory previously allocated for the HunterView toBeDeleted
 void disposeHunterView(HunterView toBeDeleted)
 {
@@ -38,35 +46,35 @@ void disposeHunterView(HunterView toBeDeleted)
 Round giveMeTheRound(HunterView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->round;
 }
 
 // Get the id of current player
 PlayerID whoAmI(HunterView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->currentPlayer;
 }
 
 // Get the current score
 int giveMeTheScore(HunterView currentView)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->score;
 }
 
 // Get the current health points for a given player
 int howHealthyIs(HunterView currentView, PlayerID player)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->health[player];
 }
 
 // Get the current location id of a given player
 LocationID whereIs(HunterView currentView, PlayerID player)
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    return 0;
+    return currentView->location[player];
 }
 
 //// Functions that return information about the history of the game
