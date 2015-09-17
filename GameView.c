@@ -49,9 +49,28 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     for(i=0;i<pastPlaysSize;i+8){
         char *currLocation = {pastPlays[i+1], pastPlays[i+2]};
         strcpy(gameView->path[currPlayer][gameView->upto[curPlayer], currLocation);
+        if (curPlayer == PLAYER_DRACULA){
+        //Check 7th from end move, if it was a trap update trap array as gone,
+        //If it was a vamp, update as matured gameView->score -=gameView->score;
+
+            gameView->score -= 1;
+        }else{    //Hunter
+
+        //Death check goes after every encounter.
+            if(gameView->health <= 0){
+                gameView->score -= 6;
+            }
+        //Hunter teleported to hospital, but this should be in hospital already.
+        //Can't test for teleported, otherwise could simply do if(location==hospital)
+
+
+        }
+
 
         curPlayer = (curPlayer+1)%5;
     }
+//If hunter is on 0 next turn they'll be on max=9 lp
+//Dracula can go above 40bp, starts at 40
 
     return gameView;
 }
