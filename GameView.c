@@ -42,10 +42,15 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     //Current Player
     gameView->currentPlayer = (pastPlaysSize/8)%5;
     int i;
+    int curPlayer = 0;
+    for (i=0;i<5;i++) {
+        gameView->upto[i] = 0;
+    }
     for(i=0;i<pastPlaysSize;i+8){
+        char *currLocation = {pastPlays[i+1], pastPlays[i+2]};
+        strcpy(gameView->path[currPlayer][gameView->upto[curPlayer], currLocation);
 
-
-
+        curPlayer = (curPlayer+1)%5;
     }
 
     return gameView;
