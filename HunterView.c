@@ -27,7 +27,7 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
 {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     HunterView hunterView = malloc(sizeof(struct hunterView));
-    hunterView->hello = 42;
+    //hunterView->hello = 42;
     return hunterView;
 }
 
