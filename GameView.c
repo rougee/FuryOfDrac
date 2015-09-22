@@ -52,21 +52,19 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         if (curPlayer == PLAYER_DRACULA){
         //Check 7th from end move, if it was a trap update trap array as gone,
         //If it was a vamp, update as matured gameView->score -=gameView->score;
-
+            //Has to have more than 6 turns
+            if (gameView->round > 6){
+            //TODO
+        }
             gameView->score -= 1;
         }else{    //Hunter
-
         //Death check goes after every encounter.
-            if(gameView->health <= 0){
+            if(gameView->health[curPlayer] <= 0){
                 gameView->score -= 6;
             }
-        //Hunter teleported to hospital, but this should be in hospital already.
+        //Hunter teleported to hospital, but they should be in hospital already.
         //Can't test for teleported, otherwise could simply do if(location==hospital)
-
-
         }
-
-
         curPlayer = (curPlayer+1)%5;
     }
 //If hunter is on 0 next turn they'll be on max=9 lp
