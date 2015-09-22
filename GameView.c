@@ -1,12 +1,16 @@
 // GameView.c ... GameView ADT implementation
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 #include "Globals.h"
 #include "Game.h"
 #include "GameView.h"
 #include "string.h"
+
+// Extra includes
+#include <stdio.h>
+#include "queue.h"
+#include "set.h"
 
 
 typedef int encounter_type;
@@ -69,34 +73,19 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     
     // Create the new gameView
     GameView gameView = malloc(sizeof(struct gameView));
-    //strlen() length, loop through
     
-    // Get the size of the pastPlays string
+    // Get the size of the pastPlays string (+ 1 for an extra space)
     int pastPlaysSize = strlen(pastPlays) + 1;
 
     // The round will be pastPlaysSize/(size of a turn * number of players)
     gameView->round = pastPlaysSize/(SIZE_OF_TURN*NUM_PLAYERS);
+
     // The current player will be (pastPlaysSize/size of a turn)%number of players
     gameView->currentPlayer = (pastPlaysSize/SIZE_OF_TURN)%NUM_PLAYERS;
 
     // Variables for looping/comparison
     int i, j;
     int back;
-
-    // char *unknownSea = "S?";
-    // char *unknownCity = "C?";
-    // char *hide = "HI";  
-    // char *teleportDracula = "TP";
-
-    // char *doubleBack1 = "D1";
-    // char *doubleBack2 = "D2";
-    // char *doubleBack3 = "D3";
-    // char *doubleBack4 = "D4";
-    // char *doubleBack5 = "D5";
-
-    // char *vampireEncounter = "V";
-    // char *trapEncounter = "T";
-    // char *draculaEncounter = "D";
 
     // Set the current player (always starts as Lord Godalming)
     int currPlayer = PLAYER_LORD_GODALMING;
@@ -117,6 +106,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     // Initialise Dracula's health
     gameView->health[PLAYER_DRACULA] = GAME_START_BLOOD_POINTS;
 
+    // If it's empty, just return the empty game view
     if (pastPlaysSize == 1) {
         return gameView;
     }
@@ -140,7 +130,6 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
             // No location, so different move was made, check all special moves
             if (currLocation[0] == 'C' && currLocation[1] == '?') {
-                printf("City unknonwn");
                 currLocationID = CITY_UNKNOWN;
             } else if (currLocation[0] == 'S' && currLocation[1] == '?') {
                 currLocationID = SEA_UNKNOWN;
@@ -202,7 +191,8 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                     break;
             }
 
-            if (back != -1) {\
+            // If a double back occured, check to see if it results in landing on a sea
+            if (back != -1) {
                 if (gameView->path[currPlayer][gameView->upto[currPlayer]-back] == SEA_UNKNOWN) {
                     gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_SEA;
                 } else if (gameView->path[currPlayer][gameView->upto[currPlayer]-back] >= MIN_MAP_LOCATION &&
@@ -329,11 +319,8 @@ LocationID getLocation(GameView currentView, PlayerID player)
         return currentView->path[player][currentView->upto[player]-1];
     }
 
-    // If the player is Dracula there are other possible moves
-
+    // If the player is Dracula there are other possible moves (already stored)
     return currentView->path[player][currentView->upto[player]-1];
-
-    return UNKNOWN_LOCATION;
 }
 
 //// Functions that return information about the history of the game
@@ -342,12 +329,18 @@ LocationID getLocation(GameView currentView, PlayerID player)
 void getHistory(GameView currentView, PlayerID player,
                             LocationID trail[TRAIL_SIZE])
 {
+
+    // Variable for looping
     int i;
 
+    // Initially fill the trail with -1
     for (i=0;i<TRAIL_SIZE;i++) {
         trail[i] = -1;
     }
 
+    // If the size of the players path is less than the trail size,
+    // only loop the size of the path amount of times, otherwise
+    // loop TRAIL_SIZE amount of times
     if (currentView->upto[player] < TRAIL_SIZE) {
         for (i=0;i<currentView->upto[player];i++) {
             trail[i] = currentView->path[player][currentView->upto[player]-i-1];
@@ -388,29 +381,86 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
 {
+
+    // Create the new map
     Map g = newMap();
 
+    // Variable for looping through adjacent cities
     VList curr;
-    int i = 1;
 
-    numLocations[0] = from;
+    // Store the connections
+    LocationID *connected = calloc(25, sizeof(LocationID));
+
+    // Set the first connection as itself
+    connected[0] = from;
+    int i = 1;
     
+    // Loop through all adjacent cities
     for (curr = g->connections[from]; curr != NULL; curr = curr->next) {
 
+        // If the current adjacent city is the hospital and the player is
+        // Dracula, ignore
         if (curr->v == ST_JOSEPH_AND_ST_MARYS && player == PLAYER_DRACULA) {
             continue;
         } else {
-            if (road && curr->type == road) {
-                numLocations[i] = curr->v;
+
+            // Otherwise check for road and sea connections
+            if (road && curr->type == ROAD) {
+                connected[i] = curr->v;
                 i++;
-            } else if (sea && curr->type == sea) {
-                numLocations[i] = curr->v;
+            } else if (sea && curr->type == BOAT) {
+                connected[i] = curr->v;
                 i++;
-            } else if (rail && player != PLAYER_DRACULA) {
-                continue;
             }
         }
     }
 
-    return 0;
+    // If the player is not Dracula and rail is enabled, do a 
+    // bfs for finding all possible rail connections
+
+    if (player != PLAYER_DRACULA && rail) {
+
+        // Set the depth of the bfs (round + player) % 4, and other
+        // variables needed for the bfs
+        int depth = (round + player) % 4;
+        int j = 0;
+        char *currName;
+
+        // Set the queue and the set
+        Queue q = newQueue();
+
+        Set s = newSet();
+
+        // Add the initial city on the queue and set
+        enterQueue(q, idToName(from));
+        insertInto(s, idToName(from));
+
+        // Do a while loop of calculated depth
+        while (j != depth) {
+
+            // Get the item form the queue and loop through all
+            // adjacent cities to it
+
+            currName = leaveQueue(q);
+
+            for (curr = g->connections[nameToID(currName)]; curr != NULL; curr = curr->next) {
+
+                // If the connection is of type rail and it has not
+                // yet been seen, then add it to the queue, stack and
+                // connected locations
+                if (curr->type == RAIL && !isElem(s, currName)) {
+                    enterQueue(q, idToName(curr->v));
+                    insertInto(s, idToName(curr->v));
+                    connected[i] = curr->v;
+                    i++;
+                }
+            }
+
+            j++;
+        }
+    }
+
+
+    *numLocations = i;
+    return connected;
 }
