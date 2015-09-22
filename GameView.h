@@ -8,6 +8,7 @@
 #include "Globals.h"
 #include "Game.h"
 #include "Places.h"
+#include "Map.h"
 
 typedef struct gameView *GameView;
 

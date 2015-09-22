@@ -7,7 +7,6 @@
 #include "Game.h"
 #include "GameView.h"
 #include "string.h"
-#include "Map.c"
 
 
 typedef int encounter_type;
@@ -64,7 +63,6 @@ int isIn(int *a, int n, int c) {
     return FALSE;
 }
 
-
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
@@ -85,16 +83,16 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     int i, j;
     int back;
 
-    char *unknownSea = "S?";
-    char *unknownCity = "C?";
-    char *hide = "HI";  
-    char *teleportDracula = "TP";
+    // char *unknownSea = "S?";
+    // char *unknownCity = "C?";
+    // char *hide = "HI";  
+    // char *teleportDracula = "TP";
 
-    char *doubleBack1 = "D1";
-    char *doubleBack2 = "D2";
-    char *doubleBack3 = "D3";
-    char *doubleBack4 = "D4";
-    char *doubleBack5 = "D5";
+    // char *doubleBack1 = "D1";
+    // char *doubleBack2 = "D2";
+    // char *doubleBack3 = "D3";
+    // char *doubleBack4 = "D4";
+    // char *doubleBack5 = "D5";
 
     // char *vampireEncounter = "V";
     // char *trapEncounter = "T";
@@ -127,7 +125,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN) {
 
         // Get the current location by concatenating the second and third character
-        char currLocation[3];
+        char currLocation[2];
         currLocation[0] = pastPlays[i+1];
         currLocation[1] = pastPlays[i+2];
         currLocation[3] = '\0';
@@ -141,24 +139,25 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
         if (currPlayer == PLAYER_DRACULA) {
 
             // No location, so different move was made, check all special moves
-            if (strcmp(currLocation, unknownCity) == 0) {
+            if (currLocation[0] == 'C' && currLocation[1] == '?') {
+                printf("City unknonwn");
                 currLocationID = CITY_UNKNOWN;
-            } else if (strcmp(currLocation, unknownSea) == 0) {
+            } else if (currLocation[0] == 'S' && currLocation[1] == '?') {
                 currLocationID = SEA_UNKNOWN;
-            } else if (strcmp(currLocation, hide) == 0) {
+            } else if (currLocation[0] == 'H' && currLocation[1] == 'I') {
                 currLocationID = HIDE;
-            } else if (strcmp(currLocation, teleportDracula) == 0) {
+            } else if (currLocation[0] == 'T' && currLocation[1] == 'P') {
                 currLocationID = TELEPORT;
             } else {
-                if (strcmp(currLocation, doubleBack1) == 0) {
+                if (currLocation[0] == 'D' && currLocation[1] == '1') {
                     currLocationID = DOUBLE_BACK_1;
-                } else if (strcmp(currLocation, doubleBack2) == 0) {
+                } else if (currLocation[0] == 'D' && currLocation[1] == '2') {
                     currLocationID = DOUBLE_BACK_2;
-                } else if (strcmp(currLocation, doubleBack3) == 0) {
+                } else if (currLocation[0] == 'D' && currLocation[1] == '3') {
                     currLocationID = DOUBLE_BACK_3;
-                } else if (strcmp(currLocation, doubleBack4) == 0) {
+                } else if (currLocation[0] == 'D' && currLocation[1] == '4') {
                     currLocationID = DOUBLE_BACK_4;
-                } else if (strcmp(currLocation, doubleBack5) == 0) {
+                } else if (currLocation[0] == 'D' && currLocation[1] == '5') {
                     currLocationID = DOUBLE_BACK_5;
                 }
             }
@@ -173,7 +172,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
 
             // If Dracula is at sea (a see move or in known sea LocationID) he loses 2 health
-            if (strcmp(currLocation, unknownSea) == 0) {
+            if (currLocation[0] == 'S' && currLocation[1] == '?') {
                 gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_SEA;
             } else if (currLocationID >= MIN_MAP_LOCATION && currLocationID <= MAX_MAP_LOCATION) {
                 if (idToType(currLocationID) == SEA) {
@@ -215,7 +214,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
             }
 
             // If Dracula is at Castle Dracula (a teleport or known location) he gains 10 health
-            if (strcmp(currLocation, teleportDracula) == 0 || currLocationID == CASTLE_DRACULA) {
+            if ((currLocation[0] == 'T' && currLocation[1] == 'P') || currLocationID == CASTLE_DRACULA) {
                 gameView->health[PLAYER_DRACULA] += LIFE_GAIN_CASTLE_DRACULA;
             }
 
@@ -311,7 +310,6 @@ int getScore(GameView currentView)
 // Get the current health points for a given player
 int getHealth(GameView currentView, PlayerID player)
 {
-    printf("HEALTH IS %d\n", currentView->health[player]);
     return currentView->health[player];
 }
 
@@ -371,6 +369,21 @@ void getHistory(GameView currentView, PlayerID player,
 
 // Returns an array of LocationIDs for all directly connected locations
 
+// The structs for the map 
+typedef struct vNode *VList;
+
+struct vNode {
+   LocationID  v;    // ALICANTE, etc
+   TransportID type; // ROAD, RAIL, BOAT
+   VList       next; // link to next node
+};
+
+struct MapRep {
+   int   nV;         // #vertices
+   int   nE;         // #edges
+   VList connections[NUM_MAP_LOCATIONS]; // array of lists
+};
+
 LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
@@ -379,12 +392,10 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
 
     VList curr;
     int i = 1;
-    TransportID type;
 
     numLocations[0] = from;
     
-    for (curr = g->connections[start]; curr != NULL; curr = curr->next) {
-        type = idToType(curr);
+    for (curr = g->connections[from]; curr != NULL; curr = curr->next) {
 
         if (curr->v == ST_JOSEPH_AND_ST_MARYS && player == PLAYER_DRACULA) {
             continue;
@@ -396,7 +407,7 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                 numLocations[i] = curr->v;
                 i++;
             } else if (rail && player != PLAYER_DRACULA) {
-                
+                continue;
             }
         }
     }
