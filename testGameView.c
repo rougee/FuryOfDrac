@@ -10,7 +10,7 @@ int main()
 {
     int i;
     GameView gv;
-
+    
     printf("Test basic empty initialisation\n");
     PlayerMessage messages1[] = {};
     gv = newGameView("", messages1);
@@ -34,34 +34,8 @@ int main()
     assert(getLocation(gv,PLAYER_MINA_HARKER) == BAY_OF_BISCAY);
     assert(getLocation(gv,PLAYER_DRACULA) == CITY_UNKNOWN);
     assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS);
-    printf("passed default tests\n");
+    printf("passed\n");
     disposeGameView(gv);
-    //Extra tests for Dracula trail
-    printf("Test for Dracula trail 2 rounds");
-    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
-                     "GST.... SST.... HST.... MST.... DD1....",messages2);
-    assert(getCurrentPlayer(gv) == PLAYER_LORD_GODALMING);
-    assert(getRound(gv) == 2);
-    assert(getLocation(gv,PLAYER_LORD_GODALMING) == STRASBOURG);
-    assert(getLocation(gv,PLAYER_DR_SEWARD) == STRASBOURG);
-    assert(getLocation(gv,PLAYER_VAN_HELSING) == STRASBOURG);
-    assert(getLocation(gv,PLAYER_MINA_HARKER) == STRASBOURG);
-    assert(getLocation(gv,PLAYER_DRACULA) == SEA_UNKNOWN);
-    print("passed test 2 rounds\n")
-    disposeGameView(gv);
-    printf("Test for players not exceeding max life points");
-    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
-                     "GGE.... SGE.... HGE.... MGE....", messages 2);
-    assert(getCurrentPlayer(gv) == PLAYER_DRACULA);
-    assert(getRound(gv) == 2);
-    assert(getLocation(gv, PLAYER_LORD_GODALMING) == GENEVA);
-    assert(getLocation(gv, PLAYER_DR_SEWARD)== GENEVA);
-    assert(getHealth(gv, PLAYER_LORD_GODALMING == GAME_START_HUNTER_LIFE_POINTS));
-    assert(getHealth(gv, PLAYER_DR_SEWARD)== GAME_START_HUNTER_LIFE_POINTS);
-    assert(getHealth(gv, PLAYER_VAN_HELSING)== GAME_START_HUNTER_LIFE_POINTS);
-    assert(getHealth(gv, PLAYER_MINA_HARKER) == GAME_START_HUNTER_LIFE_POINTS);
-    assert(getHealth(gv, PLAYER_DRACULA)== GAME_START_BLOOD_POINTS)
-    printf("passed extra tests\n");
 
     printf("Test for encountering Dracula and hunter history\n");
     PlayerMessage messages3[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!"};
@@ -81,27 +55,8 @@ int main()
     getHistory(gv,PLAYER_DR_SEWARD,history);
     assert(history[0] == ATLANTIC_OCEAN);
     assert(history[1] == UNKNOWN_LOCATION);
-    printf("passed\n");
+    printf("passed\n");        
     disposeGameView(gv);
-
-    printf("Test for Dracula restoring blood points in his castle(exceeding the maximum)\n");
-    gv = newGameView("GLO.... SPA.... HGE.... MMI.... DCD.... "
-                     "GST.... SST.... HST.... MST.... DCD....",messages3);
-    assert(getLocation(gv, PLAYER_DRACU) == CASTLE_DRACULA);
-    assert(getHealth(gv,PLAYER_DRACULA)==50);
-    assert(getLocation(gv, PLAYER_LORD_GODALMING == STRASBOURG);
-    assert(getLocation(gv, PLAYER_DR_SEWARD) == STRASBOURG);
-    assert(getLocation(gv, PLAYER_VAN_HELSING) == STRASBOURG);
-    assert(getLocation(gv, PLAYER_MINA_HARKER) == STRASBOURG);
-    getHistory(gv, PLAYER_LORD_GODALMING,history);
-    assert(history[0] == LONDON);
-    assert(history[1] == STRASBOURG);
-    assert(history[4] == UNKNOWN_LOCATION);
-    getHistory(gv, PLAYER_DRACULA,history);
-    assert(history[0] == CASTLE_DRACULA);
-    assert(history[1] == CASTLE_DRACULA);
-    disposeGameView(gv);
-    printf("passed\n");
 
     printf("Test for Dracula doubling back at sea, and losing blood points (Hunter View)\n");
     PlayerMessage messages4[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Back I go"};
@@ -131,7 +86,7 @@ int main()
 
     printf("Test for connections\n");
     int size, seen[NUM_MAP_LOCATIONS], *edges;
-    gv = newGameView("", messages1);
+    gv = newGameView("", messages1);    
     printf("Checking Galatz road connections\n");
     edges = connectedLocations(gv,&size,GALATZ,PLAYER_LORD_GODALMING,0,1,0,0);
     memset(seen, 0, NUM_MAP_LOCATIONS*sizeof(int));
@@ -154,41 +109,6 @@ int main()
     free(edges);
     printf("passed\n");
     disposeGameView(gv);
-    //Extra tests for connections
-    gv = newGameView("", messages1);
-    printf("Checking Venice ANY connections\n");
-    edges = connectedLocations(gv,&size,VENICE,PLAYER_LORD_GODALMING,0,1,1,1);
-    for (i=0; i< size ; i++) seen[edges[i]] = 1;
-    assert(size == 7); assert(seen[VENICE]); assert(seen[ADRIATIC_SEA]);
-    assert(seen[FLORENCE]);assert(seen[MILAN]); assert(seen[GENOA]);
-    assert(seen[VIENNA]); assert(seen[MUNICH]);
-    free(edges);
-    printf("Checking Atlantic Ocean conections\n");
-    edges = connectedLocations(gv,&size, ATLANTIC_OCEAN,PLAYER_LORD_GODALMING,0,0,0,1);
-    assert (size == 6); assert(seen[ATLANTIC_OCEAN]); assert(seen[NORTH_SEA]);
-    assert(seen[IRISH_SEA]); assert(seen[ENGLISH_CHANNEL]); assert(seen[BAY_OF_BISCAY]);
-    assert(seen[MEDITERRANEAN_SEA]);
-    free(edges);
-    printf("Checking Vienna sea connection(none)\n");
-    edges = connectedLocations(gv, &size, VIENNA,PLAYER_LORD_GODALMING,0,0,0,1);
-    assert (size == 1);
-    assert(edges[0] == VIENNA);
-    free(edges);
-    printf("Checking Black sea road connection(none)\n");
-    edges = connectedLocations(gv, &size, BLACK_SEA,PLAYER_LORD_GODALMING,0,1,0,0);
-    assert(size == 1);
-    assert(edges[0] == BLACK_SEA);
-    free(edges);
-    printf("Checking Galway rail connection(none)\n");
-    edges = connectedLocations(gv, &size, GALWAY,PLAYER_LORD_GODALMING,0,0,1,0);
-    assert(size == 1);
-    assert(edges[0] == GALWAY);
-    free(edges);
-    disposeGameView(gv);
-    printf("ALL TESTS PASSED\n");
     return 0;
-
-
-
 }
 
