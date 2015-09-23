@@ -115,7 +115,7 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN) {
 
         // Get the current location by concatenating the second and third character
-        char currLocation[2];
+        char currLocation[3];
         currLocation[0] = pastPlays[i+1];
         currLocation[1] = pastPlays[i+2];
         currLocation[3] = '\0';
@@ -208,36 +208,19 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 gameView->health[PLAYER_DRACULA] += LIFE_GAIN_CASTLE_DRACULA;
             }
 
+            // Lose score for vampire maturing
+            for (j=5;j<6;j++) {
+                if (pastPlays[i+j] == 'V') {
+                    gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
+                }
+            }
+
             //Scoring for dracula, decreases by 1 each time his turn ends
             gameView->score -= SCORE_LOSS_DRACULA_TURN;
 
         } else {
 
             // Process the other players
-
-            // Increase health if they rest (cap it at 9)
-
-            // First make sure they'd made more than one move
-            if (gameView->upto[currPlayer] > 1) {
-
-                // If their previous location is the same as their current locaiton,
-                // they've rested, and so increment their health
-                if (gameView->path[currPlayer][(gameView->upto[currPlayer])-1] == currLocationID) {
-                    gameView->health[currPlayer] += LIFE_GAIN_REST;
-                }
-
-                // If their new health is larger than the max health (whatever their starting health is),
-                // then cap it at their original starting health
-                if (gameView->health[currPlayer] > GAME_START_HUNTER_LIFE_POINTS) {
-                    gameView->health[currPlayer] = GAME_START_HUNTER_LIFE_POINTS;
-                }
-
-                for (j=5;j<6;j++) {
-                    if (pastPlays[i+j] == 'V') {
-                        gameView->score -= SCORE_LOSS_VAMPIRE_MATURES;
-                    }
-                }
-            }
 
             // Check for traps, and then Dracula encounters
             for (j=3;j<7;j++) {
@@ -253,9 +236,29 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 }
             }
 
+            // If they lose all their health, and score is lost
             if (gameView->health[currPlayer] < 1) {
                 gameView->health[currPlayer] = 0;
                 gameView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
+            } else {
+
+                // Otherwise increase health if they rest (cap it at 9)
+
+                // First make sure they'd made more than one move
+                if (gameView->upto[currPlayer] > 1) {
+
+                    // If their previous location is the same as their current locaiton,
+                    // they've rested, and so increment their health
+                    if (gameView->path[currPlayer][(gameView->upto[currPlayer])-2] == currLocationID) {
+                        gameView->health[currPlayer] += LIFE_GAIN_REST;
+                    }
+
+                    // If their new health is larger than the max health (whatever their starting health is),
+                    // then cap it at their original starting health
+                    if (gameView->health[currPlayer] > GAME_START_HUNTER_LIFE_POINTS) {
+                        gameView->health[currPlayer] = GAME_START_HUNTER_LIFE_POINTS;
+                    }
+                }
             }
         }
 
@@ -377,6 +380,8 @@ struct MapRep {
    VList connections[NUM_MAP_LOCATIONS]; // array of lists
 };
 
+
+// They can start from anywhere if round is 0
 LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
@@ -388,8 +393,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
     // Variable for looping through adjacent cities
     VList curr;
 
-    // Store the connections
-    LocationID *connected = calloc(25, sizeof(LocationID));
+    // Store the connections (maximum of total number of locations)
+    LocationID *connected = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
 
     // Set the first connection as itself
     connected[0] = from;

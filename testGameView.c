@@ -109,6 +109,91 @@ int main()
     free(edges);
     printf("passed\n");
     disposeGameView(gv);
+
+
+
+
+    printf("Test for Dracula doubling back x2 back at sea, and losing blood points (unknown locations)\n");
+    PlayerMessage messages6[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Back I go"};
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GGE.... SGE.... HGE.... MGE.... DD2....", messages6);
+    assert(getLocation(gv,PLAYER_DRACULA) == DOUBLE_BACK_2);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == DOUBLE_BACK_2);
+    assert(history[1] == CITY_UNKNOWN);
+    assert(history[2] == SEA_UNKNOWN);
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 4);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+    printf("Test for Dracula doubling back x3 back at sea, and losing blood points (unknown locations)\n");
+    PlayerMessage messages7[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Back I go"};
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GST.... SST.... HST.... MST.... DS?.... "
+                     "GGE.... SGE.... HGE.... MGE.... DD3....", messages7);
+    assert(getLocation(gv,PLAYER_DRACULA) == DOUBLE_BACK_3);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == DOUBLE_BACK_3);
+    assert(history[1] == SEA_UNKNOWN);
+    assert(history[2] == CITY_UNKNOWN);
+    assert(history[3] == SEA_UNKNOWN);
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 6);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+    printf("Test for Dracula doubling back x4 back at sea, and losing blood points (unknown locations)\n");
+    PlayerMessage messages8[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Back I go"};
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GST.... SST.... HST.... MST.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GGE.... SGE.... HGE.... MGE.... DD4....", messages8);
+    assert(getLocation(gv,PLAYER_DRACULA) == DOUBLE_BACK_4);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == DOUBLE_BACK_4);
+    assert(history[1] == CITY_UNKNOWN);
+    assert(history[2] == SEA_UNKNOWN);
+    assert(history[3] == CITY_UNKNOWN);
+    assert(history[4] == SEA_UNKNOWN);
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 6);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+    printf("Test for Dracula doubling back x5 back at sea, and losing blood points (unknown locations) "
+            "and capping of hunter health\n");
+    PlayerMessage messages9[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Back I go"};
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GST.... SST.... HST.... MST.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DC?.... "
+                     "GST.... SST.... HST.... MST.... DS?.... "
+                     "GGE.... SGE.... HGE.... MGE.... DD5....", messages9);
+    assert(getLocation(gv,PLAYER_DRACULA) == DOUBLE_BACK_5);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == DOUBLE_BACK_5);
+    assert(history[1] == SEA_UNKNOWN);
+    assert(history[2] == CITY_UNKNOWN);
+    assert(history[3] == SEA_UNKNOWN);
+    assert(history[4] == CITY_UNKNOWN);
+    assert(history[5] == SEA_UNKNOWN);
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 8);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_VAN_HELSING) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_MINA_HARKER) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+    
+
     return 0;
 }
 
