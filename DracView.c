@@ -92,13 +92,11 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
     
     for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN){ //standard loop to traverse previous turns
 
-        char currLocation[3];
+        char currLocation[2];
         currLocation[0] = pastPlays[i+1];
         currLocation[1] = pastPlays[i+2];
-        currLocation[3] = '\0';
 
         LocationID currLocationID = abbrevToID(currLocation); //convert 2character location to LocationID
-
 
         if(dracView->currentPlayer == PLAYER_DRACULA) {
             if (dracView->locationTraps[currLocationID] + dracView->locationVamp[currLocationID] < MAX_ENCOUNTERS){

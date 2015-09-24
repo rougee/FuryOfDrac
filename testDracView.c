@@ -110,31 +110,63 @@ int main()
 
 
 
-    printf("Test for Dracula leaving minions\n");
-    PlayerMessage messages3[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Drop a V","Party in Strasbourg","Party","Party","Party"};
-    dv = newDracView("GGE.... SGE.... HGE.... MGE.... DED.V.. "
+
+
+    printf("Test for Dracula traps expiring and being added + vamp (and no traps in random places)\n");
+    PlayerMessage genericMessage[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Drop a V","Party in Strasbourg","Party","Party","Party"};
+    dv = newDracView("GGE.... SGE.... HGE.... MGE.... DED.... "
                      "GST.... SST.... HST.... MST.... DMNT... "
-                     "GST.... SST.... HST.... MST....", messages3);
-    int nT, nV;
-    whatsThere(dv,EDINBURGH,&nT,&nV);
-    assert(nT == 0 && nV == 1);
+                     "GST.... SST.... HST.... MST.... DMNT... "
+                     "GGE.... SGE.... HGE.... MGE.... DMN.V.. "
+                     "GGE.... SGE.... HGE.... MGE.... DLOT... ", genericMessage);
     whatsThere(dv,MANCHESTER,&nT,&nV);
+    printf("%d and %d\n", nT, nV);
+    assert(nT == 2 && nV == 1);
+    whatsThere(dv,LONDON,&nT,&nV);
     assert(nT == 1 && nV == 0);
-    assert(whereIs(dv,PLAYER_DRACULA) == MANCHESTER);
-    giveMeTheTrail(dv,PLAYER_DRACULA,history);
-    assert(history[0] == MANCHESTER);
-    assert(history[1] == EDINBURGH);
-    assert(history[2] == UNKNOWN_LOCATION);
-    giveMeTheTrail(dv,PLAYER_MINA_HARKER,history);
-    assert(history[0] == STRASBOURG);
-    assert(history[1] == STRASBOURG);
-    assert(history[2] == GENEVA);
-    assert(history[3] == UNKNOWN_LOCATION);
+    whatsThere(dv,EDINBURGH,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+    whatsThere(dv,PARIS,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+
     printf("passed\n");
     disposeDracView(dv);
 
 
+    printf("Test for Dracula traps expiring vampires hatching (score and minion locations)\n");
+    dv = newDracView("GGE.... SGE.... HGE.... MGE.... DED.... "
+                     "GST.... SST.... HST.... MST.... DMNT... "
+                     "GST.... SST.... HST.... MST.... DMNT... "
+                     "GGE.... SGE.... HGE.... MGE.... DED.V.. "
+                     "GGE.... SGE.... HGE.... MGE.... DED.... "
+                     "GGE.... SGE.... HGE.... MGE.... DED.... "
+                     "GGE.... SGE.... HGE.... MGE.... DED.... "
+                     "GGE.... SGE.... HGE.... MGE.... DMN..M. "
+                     "GGE.... SGE.... HGE.... MGE.... DLOT.M. "
+                     "GGE.... SGE.... HGE.... MGE.... DLO..V. ", genericMessage);
+    whatsThere(dv,MANCHESTER,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+    whatsThere(dv,LONDON,&nT,&nV);
+    assert(nT == 1 && nV == 0);
+    whatsThere(dv,EDINBURGH,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+
+    assert(giveMeTheScore(dv) == GAME_START_SCORE - 10 - 13);
     printf("passed\n");
+    disposeDracView(dv);
+
+
+    printf("Test for Dracula adding a trap and then being encountered\n");
+    dv = newDracView("GGE.... SED.... HGE.... MGE.... DED.... "
+                     "GST.... SED.... HST.... MST.... DMNT... "
+                     "GGE.... SMNT... HGE.... MGE.... DED.... ", genericMessage);
+    whatsThere(dv,MANCHESTER,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+    assert(howHealthyIs(dv, PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS - LIFE_LOSS_TRAP_ENCOUNTER);
+
+    printf("passed\n");
+    disposeDracView(dv);
+
     return 0;
 }
 

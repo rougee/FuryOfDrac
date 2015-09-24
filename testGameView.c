@@ -260,13 +260,6 @@ int main()
     printf("passed\n");
     disposeGameView(gv);
 
-    printf("Test restored health for the first player (after resting at hospital)\n");
-    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
-                     "GPAT... SPA.... HCF.... MCF.... DC?.... "
-                     "GSZ.... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
-    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
-    printf("passed\n");
-    disposeGameView(gv);
 
     printf("Test connected locations\n");
     gv = newGameView("GGE.... SSZ.... HGE.... MGE.... DC?.... "

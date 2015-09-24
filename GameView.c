@@ -225,14 +225,12 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 gameView->health[currPlayer] = GAME_START_HUNTER_LIFE_POINTS;
             }
 
-            // Check for traps, and then Dracula encounters
+            // Check for traps, and then Dracula encounters (ignore if at sea, should be included in pastPlays)
             for (j=3;j<7;j++) {
                 if (gameView->health[currPlayer] > 0) {
                     if (pastPlays[i+j] == 'T') {
-                        //printf("-Trap encounter\n");
                         gameView->health[currPlayer] -= LIFE_LOSS_TRAP_ENCOUNTER;
                     } else if (pastPlays[i+j] == 'D') {
-                        //printf("-Drac encounter\n");
                         gameView->health[currPlayer] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                         gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;
                     }
