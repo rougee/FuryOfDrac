@@ -192,7 +192,69 @@ int main()
     printf("passed\n");
     disposeGameView(gv);
 
+
+    PlayerMessage genericMessage[] = {"Some generic message"};
+
     
+    printf("Test for single Dracula encounter for 2 players + single trap encounter "
+           "for the first player and two trap encounters for the second player\n");
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DC?.... "
+                     "GPATD.. SPAD... HCFT... MCF.... DC?.... ", genericMessage);
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 20);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS - 6);
+    assert(getHealth(gv,PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS - 4);
+    assert(getHealth(gv,PLAYER_VAN_HELSING) == GAME_START_HUNTER_LIFE_POINTS - 2);
+    assert(getHealth(gv,PLAYER_MINA_HARKER) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+
+    printf("Test for score after two rounds and two vamps hatching\n");
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DC?V.V. "
+                     "GPA.... SPA.... HCF.... MCF.... DC?..V. ", genericMessage);
+    assert(getScore(gv) == GAME_START_SCORE - 2 - 26);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+
+    printf("Test 0 health for the first player and updated score\n");
+    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
+                     "GPAT... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
+    printf("SCORE IS %d\n", getScore(gv));
+    assert(getScore(gv) == GAME_START_SCORE - 2 - 6);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+
+    printf("Test restored health for the first player (after resting at hospital)\n");
+    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
+                     "GPAT... SPA.... HCF.... MCF.... DC?.... "
+                     "GJM.... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    printf("passed\n");
+    disposeGameView(gv);
+
+    printf("Test restored health for the first player (after resting at hospital)\n");
+    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
+                     "GPAT... SPA.... HCF.... MCF.... DC?.... "
+                     "GSZ.... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    printf("passed\n");
+    disposeGameView(gv);
+
+    printf("Test too many traps\n");
+    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
+                     "GPAT... SPA.... HCF.... MCF.... DC?.... "
+                     "GSZ.... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    printf("passed\n");
+    disposeGameView(gv);
+
 
     return 0;
 }

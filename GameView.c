@@ -110,9 +110,15 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     if (pastPlaysSize == 1) {
         return gameView;
     }
-
+    //int k;
     // A for loop is used to process each turn
-    for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN) {
+    for(i=0;i<pastPlaysSize-7;i=i+SIZE_OF_TURN) {
+
+        // printf("Pastplays string=");
+        // for (k=0;k<7;k++) {
+        //     printf("%c", pastPlays[i+k]);
+        // }
+        // printf("\n");
 
         // Get the current location by concatenating the second and third character
         char currLocation[3];
@@ -222,12 +228,20 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 
             // Process the other players
 
+            // If they have 0 health, that means they were at the hospital, and now 
+            // should have full health
+            if (gameView->health[currPlayer] == 0) {
+                gameView->health[currPlayer] = GAME_START_HUNTER_LIFE_POINTS;
+            }
+
             // Check for traps, and then Dracula encounters
             for (j=3;j<7;j++) {
                 if (gameView->health[currPlayer] > 0) {
                     if (pastPlays[i+j] == 'T') {
+                        //printf("-Trap encounter\n");
                         gameView->health[currPlayer] -= LIFE_LOSS_TRAP_ENCOUNTER;
                     } else if (pastPlays[i+j] == 'D') {
+                        //printf("-Drac encounter\n");
                         gameView->health[currPlayer] -= LIFE_LOSS_DRACULA_ENCOUNTER;
                         gameView->health[PLAYER_DRACULA] -= LIFE_LOSS_HUNTER_ENCOUNTER;
                     }
@@ -236,10 +250,14 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 }
             }
 
-            // If they lose all their health, and score is lost
+            // If they lose all their health score is lost
             if (gameView->health[currPlayer] < 1) {
                 gameView->health[currPlayer] = 0;
                 gameView->score -= SCORE_LOSS_HUNTER_HOSPITAL;
+
+                // Manually move them to the hospital
+
+
             } else {
 
                 // Otherwise increase health if they rest (cap it at 9)
@@ -273,7 +291,6 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the GameView toBeDeleted
 void disposeGameView(GameView toBeDeleted)
 {
-    //COMPLETE THIS IMPLEMENTATION
     free( toBeDeleted );
 }
 
@@ -283,7 +300,6 @@ void disposeGameView(GameView toBeDeleted)
 // Get the current round
 Round getRound(GameView currentView)
 {
-    //Done feel free to change
     return currentView->round;
 }
 
@@ -293,10 +309,9 @@ PlayerID getCurrentPlayer(GameView currentView)
     return currentView->currentPlayer;
 }
 
-    //Done feel free to change
+// Get the current score
 int getScore(GameView currentView)
 {
-    //Done feel free to change
     return currentView->score;
 }
 
@@ -310,12 +325,17 @@ int getHealth(GameView currentView, PlayerID player)
 LocationID getLocation(GameView currentView, PlayerID player)
 {
 
+    // If their health is zero, and they're no Dracula, they must be
+    // at the hospital
+    if (currentView->health[player] == 0 && player != PLAYER_DRACULA) {
+        return ST_JOSEPH_AND_ST_MARYS;
+    }
+
     // If unitialised return UNKNOWN_LOCATION
     if (currentView->upto[player] == 0) {
         return UNKNOWN_LOCATION;
     }
 
-    // printf("LOCATION IS %d\n", currentView->path[player][currentView->upto[player]-1]);
     // If location is valid return the location
     if (currentView->path[player][currentView->upto[player]-1] >= MIN_MAP_LOCATION &&
         currentView->path[player][currentView->upto[player]-1] <= MAX_MAP_LOCATION) {
@@ -353,12 +373,6 @@ void getHistory(GameView currentView, PlayerID player,
             trail[i] = currentView->path[player][currentView->upto[player]-i-1];
         }
     }
-
-    // printf("trail->");
-    // for (i=0;i<TRAIL_SIZE;i++) {
-    //     printf("%d->", trail[i]);
-    // }
-    // printf("end\n");
 }
 
 //// Functions that query the map to find information about connectivity
@@ -386,6 +400,12 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
 {
+
+    // If the player's current health is 0 and they're not Dracula, they
+    // must be at the hospital
+    if (currentView->health[player] == 0 && player != PLAYER_DRACULA) {
+        from = ST_JOSEPH_AND_ST_MARYS;
+    }
 
     // Create the new map
     Map g = newMap();
