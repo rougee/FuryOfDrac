@@ -1,13 +1,16 @@
 // HunterView.c ... HunterView ADT implementation
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <assert.h>
 #include "Globals.h"
 #include "Game.h"
 #include "GameView.h"
 #include "HunterView.h"
 // #include "Map.h" ... if you decide to use the Map ADT
+
+// Extra includes
+#include <stdio.h>
+#include "Map.h"
 
 struct hunterView {
     //REPLACE THIS WITH YOUR OWN IMPLEMENTATION

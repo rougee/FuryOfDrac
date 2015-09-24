@@ -9,8 +9,7 @@
 
 // Extra includes
 #include <stdio.h>
-#include "queue.h"
-#include "set.h"
+#include "Map.h"
 
 
 typedef int encounter_type;
@@ -70,7 +69,6 @@ int isIn(int *a, int n, int c) {
 // Creates a new GameView to summarise the current state of the game
 GameView newGameView(char *pastPlays, PlayerMessage messages[])
 {
-    
     // Create the new gameView
     GameView gameView = malloc(sizeof(struct gameView));
     
@@ -110,21 +108,14 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
     if (pastPlaysSize == 1) {
         return gameView;
     }
-    //int k;
+
     // A for loop is used to process each turn
     for(i=0;i<pastPlaysSize-7;i=i+SIZE_OF_TURN) {
 
-        // printf("Pastplays string=");
-        // for (k=0;k<7;k++) {
-        //     printf("%c", pastPlays[i+k]);
-        // }
-        // printf("\n");
-
         // Get the current location by concatenating the second and third character
-        char currLocation[3];
+        char currLocation[2];
         currLocation[0] = pastPlays[i+1];
         currLocation[1] = pastPlays[i+2];
-        currLocation[3] = '\0';
 
         // Get the current location id
         LocationID currLocationID = abbrevToID(currLocation);
@@ -342,7 +333,7 @@ LocationID getLocation(GameView currentView, PlayerID player)
         return currentView->path[player][currentView->upto[player]-1];
     }
 
-    // If the player is Dracula there are other possible moves (already stored)
+    // Otherwise the player must be Dracula there are other possible moves (already stored)
     return currentView->path[player][currentView->upto[player]-1];
 }
 
@@ -379,113 +370,12 @@ void getHistory(GameView currentView, PlayerID player,
 
 // Returns an array of LocationIDs for all directly connected locations
 
-// The structs for the map 
-typedef struct vNode *VList;
-
-struct vNode {
-   LocationID  v;    // ALICANTE, etc
-   TransportID type; // ROAD, RAIL, BOAT
-   VList       next; // link to next node
-};
-
-struct MapRep {
-   int   nV;         // #vertices
-   int   nE;         // #edges
-   VList connections[NUM_MAP_LOCATIONS]; // array of lists
-};
-
-
 // They can start from anywhere if round is 0
 LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea)
 {
-
-    // If the player's current health is 0 and they're not Dracula, they
-    // must be at the hospital
-    if (currentView->health[player] == 0 && player != PLAYER_DRACULA) {
-        from = ST_JOSEPH_AND_ST_MARYS;
-    }
-
-    // Create the new map
-    Map g = newMap();
-
-    // Variable for looping through adjacent cities
-    VList curr;
-
-    // Store the connections (maximum of total number of locations)
-    LocationID *connected = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-
-    // Set the first connection as itself
-    connected[0] = from;
-    int i = 1;
-    
-    // Loop through all adjacent cities
-    for (curr = g->connections[from]; curr != NULL; curr = curr->next) {
-
-        // If the current adjacent city is the hospital and the player is
-        // Dracula, ignore
-        if (curr->v == ST_JOSEPH_AND_ST_MARYS && player == PLAYER_DRACULA) {
-            continue;
-        } else {
-
-            // Otherwise check for road and sea connections
-            if (road && curr->type == ROAD) {
-                connected[i] = curr->v;
-                i++;
-            } else if (sea && curr->type == BOAT) {
-                connected[i] = curr->v;
-                i++;
-            }
-        }
-    }
-
-    // If the player is not Dracula and rail is enabled, do a 
-    // bfs for finding all possible rail connections
-
-    if (player != PLAYER_DRACULA && rail) {
-
-        // Set the depth of the bfs (round + player) % 4, and other
-        // variables needed for the bfs
-        int depth = (round + player) % 4;
-        int j = 0;
-        char *currName;
-
-        // Set the queue and the set
-        Queue q = newQueue();
-
-        Set s = newSet();
-
-        // Add the initial city on the queue and set
-        enterQueue(q, idToName(from));
-        insertInto(s, idToName(from));
-
-        // Do a while loop of calculated depth
-        while (j != depth) {
-
-            // Get the item form the queue and loop through all
-            // adjacent cities to it
-
-            currName = leaveQueue(q);
-
-            for (curr = g->connections[nameToID(currName)]; curr != NULL; curr = curr->next) {
-
-                // If the connection is of type rail and it has not
-                // yet been seen, then add it to the queue, stack and
-                // connected locations
-                if (curr->type == RAIL && !isElem(s, currName)) {
-                    enterQueue(q, idToName(curr->v));
-                    insertInto(s, idToName(curr->v));
-                    connected[i] = curr->v;
-                    i++;
-                }
-            }
-
-            j++;
-        }
-    }
-
-
-    *numLocations = i;
-    return connected;
+    return getConnectedLocations(currentView->health[player], numLocations,
+                                 from, player, round,
+                                road, rail, sea);
 }

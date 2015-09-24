@@ -6,6 +6,27 @@
 #include <string.h>
 #include "GameView.h"
 
+
+int isEqual(LocationID *a, int asize, LocationID *b, int bsize) {
+    int i, j, in;
+
+    for (i=0;i<asize;i++) {
+        in = 0;
+
+        for (j=0;j<bsize;j++) {
+            if (a[i] == b[j]) {
+                in = 1;
+            }
+        }
+
+        if (in == 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 int main()
 {
     int i;
@@ -247,15 +268,23 @@ int main()
     printf("passed\n");
     disposeGameView(gv);
 
-    printf("Test too many traps\n");
-    gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
-                     "GPAT... SPA.... HCF.... MCF.... DC?.... "
-                     "GSZ.... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
-    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    printf("Test connected locations\n");
+    gv = newGameView("GGE.... SSZ.... HGE.... MGE.... DC?.... "
+                     "GPA.... SSZ.... HCF.... MCF.... DC?.... "
+                     "GPA.... SSZ.... HCF.... MCF.... DC?.... ", genericMessage);
+    int as;
+    LocationID *a;
+    a = connectedLocations(gv,&as,SZEGED,PLAYER_LORD_GODALMING,3,1,1,1);
+    LocationID b[] = {SZEGED,ST_JOSEPH_AND_ST_MARYS,ZAGREB,BUDAPEST,KLAUSENBURG,BUCHAREST,BELGRADE,
+                      VIENNA,GALATZ,CONSTANTA,SOFIA,
+                      VARNA,SALONICA,PRAGUE,VENICE}; 
+    assert(as == 15);
+    assert(isEqual(a,as,b,15) == 1);
+
     printf("passed\n");
     disposeGameView(gv);
 
-
+    
     return 0;
 }
 

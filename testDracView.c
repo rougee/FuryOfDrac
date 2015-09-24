@@ -107,6 +107,33 @@ int main()
     free(edges);
     disposeDracView(dv);
 
+
+
+
+    printf("Test for Dracula leaving minions\n");
+    PlayerMessage messages3[] = {"Hello","Rubbish","Stuff","","Mwahahah","Aha!","","","","Drop a V","Party in Strasbourg","Party","Party","Party"};
+    dv = newDracView("GGE.... SGE.... HGE.... MGE.... DED.V.. "
+                     "GST.... SST.... HST.... MST.... DMNT... "
+                     "GST.... SST.... HST.... MST....", messages3);
+    int nT, nV;
+    whatsThere(dv,EDINBURGH,&nT,&nV);
+    assert(nT == 0 && nV == 1);
+    whatsThere(dv,MANCHESTER,&nT,&nV);
+    assert(nT == 1 && nV == 0);
+    assert(whereIs(dv,PLAYER_DRACULA) == MANCHESTER);
+    giveMeTheTrail(dv,PLAYER_DRACULA,history);
+    assert(history[0] == MANCHESTER);
+    assert(history[1] == EDINBURGH);
+    assert(history[2] == UNKNOWN_LOCATION);
+    giveMeTheTrail(dv,PLAYER_MINA_HARKER,history);
+    assert(history[0] == STRASBOURG);
+    assert(history[1] == STRASBOURG);
+    assert(history[2] == GENEVA);
+    assert(history[3] == UNKNOWN_LOCATION);
+    printf("passed\n");
+    disposeDracView(dv);
+
+
     printf("passed\n");
     return 0;
 }

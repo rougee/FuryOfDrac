@@ -5,6 +5,11 @@
 
 #include "Places.h"
 
+#include "GameView.h"
+#include "set.h"
+#include "queue.h"
+#include "Game.h"
+
 typedef struct edge{
     LocationID  start;
     LocationID  end;
@@ -20,5 +25,8 @@ void disposeMap(Map g);
 void showMap(Map g); 
 int  numV(Map g);
 int  numE(Map g, TransportID t);
+LocationID *getConnectedLocations(int health, int *numLocations,
+                               LocationID from, PlayerID player, Round round,
+                               int road, int rail, int sea);
 
 #endif

@@ -8,6 +8,7 @@
 #include "Map.h"
 #include "Places.h"
 
+
 typedef struct vNode *VList;
 
 struct vNode {
@@ -132,6 +133,122 @@ int numE(Map g, TransportID type)
       }
     }
     return nE;
+}
+
+
+LocationID *getConnectedLocations(int health, int *numLocations,
+                               LocationID from, PlayerID player, Round round,
+                               int road, int rail, int sea) {
+
+    // If the player's current health is 0 and they're not Dracula, they
+    // must be at the hospital
+    if (health == 0 && player != PLAYER_DRACULA) {
+        from = ST_JOSEPH_AND_ST_MARYS;
+    }
+
+    // Create the new map
+    Map g = newMap();
+
+    // Variable for looping through adjacent cities
+    VList curr;
+
+    // Store the connections (maximum of total number of locations)
+    LocationID *connected = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+
+    // Store a set to store locations already seen (add the first connection)
+    Set seen = newSet();
+    insertInto(seen, idToName(from));
+
+    // Set the first connection as itself
+    connected[0] = from;
+    int i = 1;
+    
+    // Loop through all adjacent cities
+    for (curr = g->connections[from]; curr != NULL; curr = curr->next) {
+
+        // If the current adjacent city is the hospital and the player is
+        // Dracula, ignore
+        if (curr->v == ST_JOSEPH_AND_ST_MARYS && player == PLAYER_DRACULA) {
+            continue;
+        } else {
+
+            // Otherwise check for road and sea connections
+            if (road && curr->type == ROAD) {
+                insertInto(seen, idToName(curr->v));
+                connected[i] = curr->v;
+                i++;
+            } else if (sea && curr->type == BOAT) {
+                insertInto(seen, idToName(curr->v));
+                connected[i] = curr->v;
+                i++;
+            }
+        }
+    }
+
+    // If the player is not Dracula and rail is enabled, do a 
+    // bfs for finding all possible rail connections
+
+    if (player != PLAYER_DRACULA && rail) {
+
+        // Set the depth of the bfs (round + player) % 4, and other
+        // variables needed for the bfs
+        int depth = (round + player) % 4;
+        int j = 0;
+        char *currName;
+
+        // Set the queue and the set
+        Queue q = newQueue();
+
+        Set s = newSet();
+
+        // Add the initial city on the queue and set
+        enterQueue(q, idToName(from));
+        insertInto(s, idToName(from));
+
+        int nextDepthCount = 1;
+        int queueSize = 1;
+
+        // Do a while loop of calculated depth
+        while (j != depth && !emptyQueue(q)) {
+
+            // Get the item form the queue and loop through all
+            // adjacent cities to it
+
+            currName = leaveQueue(q);
+            nextDepthCount--;
+            queueSize--;
+
+            for (curr = g->connections[nameToID(currName)]; curr != NULL; curr = curr->next) {
+                
+                // If the connection is of type rail and it has not
+                // yet been seen, then add it to the queue, set and
+                // connected locations
+                if (curr->type == RAIL && !isElem(s, idToName(curr->v))) {
+
+                    enterQueue(q, idToName(curr->v));
+                    queueSize++;
+
+                    if(!isElem(seen, idToName(curr->v))) {
+                        connected[i] = curr->v;
+                        i++;
+                    }
+                }
+
+                if (curr->type == RAIL) {
+                    insertInto(s, idToName(curr->v));
+                }
+            }
+
+            if (nextDepthCount == 0) {
+                j++;
+                nextDepthCount = queueSize;
+            }
+        }
+    }
+
+
+    *numLocations = i;
+    return connected;
 }
 
 // Add edges to Graph representing map of Europe
