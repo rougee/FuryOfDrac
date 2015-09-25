@@ -6,10 +6,41 @@
 #include <string.h>
 #include "DracView.h"
 
+int isEqual(LocationID *a, int asize, LocationID *b, int bsize) {
+    int i, j, in;
+
+    for (i=0;i<asize;i++) {
+        in = 0;
+
+        for (j=0;j<bsize;j++) {
+            if (a[i] == b[j]) {
+                in = 1;
+            }
+        }
+
+        if (in == 0) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 int main()
 {
     int i;
     DracView dv;
+
+    printf("Test basic empty initialisation\n");
+    PlayerMessage messages0[] = {};
+    dv = newDracView("", messages0);
+    assert(giveMeTheRound(dv) == 0);
+    assert(howHealthyIs(dv,PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(howHealthyIs(dv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS);
+    assert(giveMeTheScore(dv) == GAME_START_SCORE);
+    assert(whereIs(dv,PLAYER_LORD_GODALMING) == UNKNOWN_LOCATION);
+    printf("passed\n");
+    disposeDracView(dv);
 
 
     printf("Test for basic functions, just before Dracula's first move\n");
@@ -120,7 +151,6 @@ int main()
                      "GGE.... SGE.... HGE.... MGE.... DMN.V.. "
                      "GGE.... SGE.... HGE.... MGE.... DLOT... ", genericMessage);
     whatsThere(dv,MANCHESTER,&nT,&nV);
-    printf("%d and %d\n", nT, nV);
     assert(nT == 2 && nV == 1);
     whatsThere(dv,LONDON,&nT,&nV);
     assert(nT == 1 && nV == 0);
@@ -142,12 +172,12 @@ int main()
                      "GGE.... SGE.... HGE.... MGE.... DED.... "
                      "GGE.... SGE.... HGE.... MGE.... DED.... "
                      "GGE.... SGE.... HGE.... MGE.... DMN..M. "
-                     "GGE.... SGE.... HGE.... MGE.... DLOT.M. "
+                     "GGE.... SGE.... HGE.... MGE.... DLO..M. "
                      "GGE.... SGE.... HGE.... MGE.... DLO..V. ", genericMessage);
     whatsThere(dv,MANCHESTER,&nT,&nV);
     assert(nT == 0 && nV == 0);
     whatsThere(dv,LONDON,&nT,&nV);
-    assert(nT == 1 && nV == 0);
+    assert(nT == 0 && nV == 0);
     whatsThere(dv,EDINBURGH,&nT,&nV);
     assert(nT == 0 && nV == 0);
 
@@ -166,6 +196,41 @@ int main()
 
     printf("passed\n");
     disposeDracView(dv);
+
+
+    printf("Test for Dracula adding 2 traps and them being encountered, plus a vamp hatchling\n");
+    dv = newDracView("GGE.... SED.... HGE.... MGE.... DED.... "
+                     "GST.... SED.... HST.... MST.... DMNT... "
+                     "GGE.... SED.... HGE.... MGE.... DMNT... "
+                     "GGE.... SMNTT.. HGE.... MGE.... DED.V.. "
+                     "GGE.... SED.... HGE.... MGE.... DED.... "
+                     "GGE.... SNS.... HGE.... MGE.... DED.... "
+                     "GGE.... SNS.... HGE.... MGE.... DED.... "
+                     "GGE.... SNS.... HGE.... MGE.... DED.... "
+                     "GGE.... SNS.... HGE.... MGE.... DED.... ", genericMessage);
+    whatsThere(dv,MANCHESTER,&nT,&nV);
+    assert(nT == 0 && nV == 0);
+
+    whatsThere(dv,EDINBURGH,&nT,&nV);
+    assert(nT == 0 && nV == 1);
+
+    printf("passed\n");
+    disposeDracView(dv);
+
+
+    printf("Test for where Dracula can go\n");
+    dv = newDracView("GGE.... SED.... HGE.... MGE.... DSZ.... ", genericMessage);
+    
+    int as;
+    LocationID *a;
+    a = whereCanIgo(dv, &as, 1, 1);
+    LocationID b[] = {ZAGREB,BUDAPEST,KLAUSENBURG,BELGRADE}; 
+    assert(as == 4);
+    assert(isEqual(a,as,b,4) == 1);
+
+    printf("passed\n");
+    disposeDracView(dv);
+  
 
     return 0;
 }

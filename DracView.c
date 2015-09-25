@@ -9,6 +9,7 @@
 #include "DracView.h"
 
 #include "string.h"
+#include "set.h"
 
 // #include "Map.h" ... if you decide to use the Map ADT
 
@@ -25,25 +26,34 @@ typedef int encounter_type;
 //#define DOUBLE_BACK_CONVERSION 102
 
 struct dracView {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
-    //Store traps and vamps+gameview
+
+    // Stores the current round
     int round;
+
+    // Stores the current player
     int currentPlayer;
+
+    // Stores the current score
     int score;
-    ////////////////////////////////////////////
-    ///////Structs
-    //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+    
+    // Arrays to store data for each player 
+    // Individual arrays for each of size 5;(0,1,2,3 = hunters), 4=drac
+
+    // Stores the health
     int health[NUM_PLAYERS];
+
+    // Stores the current location
     int location[NUM_PLAYERS];
-    //traps and vampires
+
+    // Stores the traps and vamps
     int locationTraps[NUM_MAP_LOCATIONS];
-    int locationVamp[NUM_MAP_LOCATIONS];
-    //need to store trail
+    int locationVamps[NUM_MAP_LOCATIONS];
+
+    // Stores the Drac trail
     LocationID dracTrail[TRAIL_SIZE];
 
-    
-    
-    GameView game; // realised this makes several functions below easier
+    // Stores the game view
+    GameView game;
 };
 
 
@@ -52,10 +62,10 @@ struct dracView {
 DracView newDracView(char *pastPlays, PlayerMessage messages[])
 {
 
+    // Create the new dracView
     DracView dracView = malloc(sizeof(struct dracView));
- 
     
-    //set basics from gameview: round, current player, score, health, location and dracula's trail
+    // Set basics from gameview: round, current player, score, health, location and dracula's trail
     GameView gv;
     gv = newGameView(pastPlays, messages);
     dracView->game = gv;
@@ -64,61 +74,124 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
     dracView->score = getScore(gv);
     getHistory(gv,PLAYER_DRACULA,dracView->dracTrail);
     
-    
+    // Variables for looping and such
     int i,j,a;
+
+    // Stores the location which just dropped out of the trail
+    LocationID oldestLocation;
+
+    // The current player
+    int currPlayer = PLAYER_LORD_GODALMING;
+
+    // Set the current location and health of the players
     for (a = 0; a < NUM_PLAYERS; a++ ) {
         dracView->health[a] = getHealth(gv,a);
         dracView->location[a] = getLocation(gv,a);
     }
 
-    i = 0;
-    
-    
-    //loop to store locations of all traps and vamps
-    int pastPlaysSize = strlen(pastPlays);
-    
-    //if trap expires/ vamp hatches
-    
-    if(dracView->currentPlayer == PLAYER_DRACULA){
-        if( pastPlays[i+EXPIRY_INDEX] == 'M'){
-            dracView->locationTraps[dracView->dracTrail[FINAL_TRAIL_IND]]--;
-        }
-        else if (pastPlays[i+EXPIRY_INDEX] == 'V'){
-            dracView->locationVamp[dracView->dracTrail[FINAL_TRAIL_IND]]--;
-        }
+    // Set all the traps and vamps to 0
+    for (i=0;i<NUM_MAP_LOCATIONS;i++) {
+        dracView->locationTraps[i] = 0;
+        dracView->locationVamps[i] = 0;
     }
-    
-    //TRAPS AND VAMPS ARRAYS
-    
-    for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN){ //standard loop to traverse previous turns
 
+    // Get the size of the pastPlays string (+ 1 for an extra space)
+    int pastPlaysSize = strlen(pastPlays) + 1;
+    
+    // If it's empty, just return the empty game view
+    if (pastPlaysSize == 1) {
+        return dracView;
+    }
+
+    // Stores all of Draculas moves (for traps)
+    LocationID dracMoves[GAME_START_SCORE];
+    LocationID dracMovesUpto = 0;
+
+    // Loop to store locations of all traps and vamps
+    for(i=0;i<pastPlaysSize;i=i+SIZE_OF_TURN) {
+
+        // Get the current location
         char currLocation[2];
         currLocation[0] = pastPlays[i+1];
         currLocation[1] = pastPlays[i+2];
 
-        LocationID currLocationID = abbrevToID(currLocation); //convert 2character location to LocationID
+        // Get the current location id
+        LocationID currLocationID = abbrevToID(currLocation);
 
-        if(dracView->currentPlayer == PLAYER_DRACULA) {
-            if (dracView->locationTraps[currLocationID] + dracView->locationVamp[currLocationID] < MAX_ENCOUNTERS){
-                if(pastPlays[i+TRAP_IND] == 'T') { //trap
+        if(currPlayer == PLAYER_DRACULA) {
+
+            // Add the location to the array storing all his moves
+            dracMoves[dracMovesUpto] = currLocationID;
+            dracMovesUpto++;
+
+            // Check for placement of traps and vamp hatchlings
+            for (j=3;j<5;j++) {
+                if (pastPlays[i+j] == 'T') {
+
+                    // Place trap in current location
                     dracView->locationTraps[currLocationID]++;
-                }
-                if(pastPlays[i+VAMP_IND] == 'V') { //vamp
-                    dracView->locationVamp[currLocationID]++;
+                } else if (pastPlays[i+j] == 'V') {
+
+                    // Place vamp hatchling in current location
+                    dracView->locationVamps[currLocationID]++;
                 }
             }
-        }
-        else { //hunter encounters trap or vamp, disables, repeatedly up to 3 per city, traps first
-            //alternatively check the pastPlays for V or D
-            for(j=0; j < MAX_ENCOUNTERS; j++){
-                if (dracView->locationTraps[currLocationID] > 0) {
+
+            if (dracMovesUpto > 6) {
+
+                // Get the oldest location
+                oldestLocation = dracMoves[dracMovesUpto-7];
+
+                // Check for expiration for traps and vamp hatchlings
+                if (pastPlays[i+5] == 'M') {
+
+                    dracView->locationTraps[oldestLocation]--;
+
+                    
+
+                    // Remove oldest vamp
+                    // for (j=5;j!=0;j--) {
+                    //     if (dracView->dracTrail[j] != -1) {
+                    //         if (dracView->locationVamps[dracView->dracTrail[j]] > 0) {
+                    //             dracView->locationVamps[dracView->dracTrail[j]]--;
+                    //             break;
+                    //         }
+                    //     }
+                    // }
+                } else if (pastPlays[i+5] == 'V') {
+
+                    dracView->locationVamps[oldestLocation]--;
+
+                    // Remove oldest trap
+                    // for (j=5;j!=0;j--) {
+                    //     if (dracView->dracTrail[j] != -1) {
+                    //         if (dracView->locationTraps[dracView->dracTrail[j]] > 0) {
+                    //             dracView->locationTraps[dracView->dracTrail[j]]--;
+                    //             break;
+                    //         }
+                    //     }
+                    // }
+                }
+            }
+        } else {
+
+            // Check for traps and vamp hatchling encounters
+            for (j=3;j<7;j++) {
+                if (pastPlays[i+j] == 'T') {
+                    printf("Trap encountered at %d\n", currLocationID);
+
+                    // Remove trap in current location
                     dracView->locationTraps[currLocationID]--;
-                }
-                else if (dracView->locationVamp[currLocationID] > 0) {
-                    dracView->locationVamp[currLocationID]--;
+                } else if (pastPlays[i+j] == 'V') {
+
+                    // Remove vamp in current location
+                    dracView->locationVamps[currLocationID]--;
                 }
             }
         }
+
+        // Move onto the next player
+        currPlayer = (currPlayer+1)%NUM_PLAYERS;
     }
     return dracView;
 }
@@ -127,7 +200,6 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the DracView toBeDeleted
 void disposeDracView(DracView toBeDeleted)
 {
-    //COMPLETE THIS IMPLEMENTATION
     free( toBeDeleted );
 }
 
@@ -163,7 +235,7 @@ void lastMove(DracView currentView, PlayerID player,
               LocationID *start, LocationID *end)
 {
     LocationID trail[TRAIL_SIZE];
-    getHistory(currentView->game, player, trail); //storing the gameView also makes this easier
+    getHistory(currentView->game, player, trail);
 
     *start = trail[1];
     *end = trail[0];
@@ -176,7 +248,7 @@ void whatsThere(DracView currentView, LocationID where,
                 int *numTraps, int *numVamps)
 {
     *numTraps = currentView->locationTraps[where];
-    *numVamps = currentView->locationVamp[where];
+    *numVamps = currentView->locationVamps[where];
 }
 
 //// Functions that return information about the history of the game
@@ -185,7 +257,9 @@ void whatsThere(DracView currentView, LocationID where,
 void giveMeTheTrail(DracView currentView, PlayerID player,
                     LocationID trail[TRAIL_SIZE])
 {
-    getHistory(currentView->game, player, trail); //storing the gameView makes this easier
+    // Will show Dracula's location (if not a special move) due to the way
+    // the gameView is implemented, still need to check for special moves
+    getHistory(currentView->game, player, trail);
 }
 
 //// Functions that query the map to find information about connectivity
@@ -200,85 +274,89 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
      no hospital ever,
      hide: same city CANNOT HIDE AT SEA,
      double back: can go back to something on trail  */
-    
-    LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-    int i, num;
 
-    where[0] = currentView->location[PLAYER_DRACULA];
+    return whereCanTheyGo(currentView, numLocations, PLAYER_DRACULA,
+                           road, 0, sea);
+    
+    // LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+    // int i, num;
 
-    num = 1;
-    
-    //first case, first move
-    
-    if(getRound(currentView->game)== 0) {
-        //move anywhere except hospital
-        for(i=0; i<NUM_MAP_LOCATIONS; i++) {
-            if(i != ST_JOSEPH_AND_ST_MARYS) {
-                where[i] = i;
-            }
-        }
-        num = NUM_MAP_LOCATIONS -1;
-    }
-    
-    else {
-        //first find whether dobule backed or not, hid or not
-        int hideState = FALSE;
-        int doubleState = FALSE;
-        //LocationID *dracTrail;
-        getHistory(currentView->game, PLAYER_DRACULA, currentView->dracTrail); // Is that allowed???
-        int j;
-        for (j=0; j<TRAIL_SIZE; j++){
-            if(currentView->dracTrail[j] == HIDE){
-                hideState = TRUE; //hidden
-            }
-            if( (currentView->dracTrail[j] <= DOUBLE_BACK_5) && (currentView->dracTrail[j] >= DOUBLE_BACK_1)){
-                doubleState = TRUE;  //double backed
-                //int doubleNum = dracTrail[j] - DOUBLE_BACK_CONVERSION; //converts to 1-5
-            }
-        }
-        
-        //add all adjacent except those on  trail
-        //first get adjacents
-        int tempNum;
-        LocationID *adjacent = connectedLocations(currentView->game, &tempNum,
-                                                  whereIs(currentView, PLAYER_DRACULA),
-                                                  PLAYER_DRACULA,
-                                                  getRound(currentView->game), road, FALSE, sea);
-        //copy to the adjacent array elements that are not on the trail
-        int whereCounter;
-        int k;
-        for(whereCounter=0; whereCounter < tempNum; whereCounter++) { //for each adjacent
-            int isInTrail = FALSE;
-            for (k=0; k<TRAIL_SIZE; k++) { //check if its in trail
-                if (currentView->dracTrail[k] == adjacent[whereCounter]) {
-                    isInTrail = TRUE;
-                }
-            }
-            if(isInTrail == FALSE) {
-                where[num] = adjacent[whereCounter];
-                num++; //only increases if not in trail
-            }
-        }
-        //if doubleBack not true, add all locations on trail except current
+    // where[0] = currentView->location[PLAYER_DRACULA];
 
-        if (doubleState == FALSE){
-            int l;
-            for(l = 1; l<TRAIL_SIZE; l++) { //skip ind 0
-                where[num] = currentView->dracTrail[l];
-                num++;
-            }
-        
-        }
-        
-        //if hide not true, add current location unless currently at sea
-        if ((hideState == FALSE) && (idToType(currentView->dracTrail[0] != SEA)) ){
-            where[num] = currentView->dracTrail[0];
-            num++;
-        }
-    }
+    // num = 1;
     
-    *numLocations = num;
-    return where;
+    // //first case, first move
+    
+    // if(getRound(currentView->game)== 0) {
+    //     //move anywhere except hospital
+    //     for(i=0; i<NUM_MAP_LOCATIONS; i++) {
+    //         if(i != ST_JOSEPH_AND_ST_MARYS) {
+    //             where[i] = i;
+    //         }
+    //     }
+    //     num = NUM_MAP_LOCATIONS -1;
+    // }
+    
+    // else {
+    //     //first find whether dobule backed or not, hid or not
+    //     int hideState = FALSE;
+    //     int doubleState = FALSE;
+    //     //LocationID *dracTrail;
+    //     getHistory(currentView->game, PLAYER_DRACULA, currentView->dracTrail); // Is that allowed???
+    //     int j;
+    //     for (j=0; j<TRAIL_SIZE; j++){
+    //         if(currentView->dracTrail[j] == HIDE){
+    //             hideState = TRUE; //hidden
+    //         }
+    //         if( (currentView->dracTrail[j] <= DOUBLE_BACK_5) && (currentView->dracTrail[j] >= DOUBLE_BACK_1)){
+    //             doubleState = TRUE;  //double backed
+    //             //int doubleNum = dracTrail[j] - DOUBLE_BACK_CONVERSION; //converts to 1-5
+    //         }
+    //     }
+        
+    //     //add all adjacent except those on  trail
+    //     //first get adjacents
+    //     int tempNum;
+    //     LocationID *adjacent = connectedLocations(currentView->game, &tempNum,
+    //                                               whereIs(currentView, PLAYER_DRACULA),
+    //                                               PLAYER_DRACULA,
+    //                                               getRound(currentView->game), road, FALSE, sea);
+    //     //copy to the adjacent array elements that are not on the trail
+    //     int whereCounter;
+    //     int k;
+    //     for(whereCounter=0; whereCounter < tempNum; whereCounter++) { //for each adjacent
+    //         int isInTrail = FALSE;
+    //         for (k=0; k<TRAIL_SIZE; k++) { //check if its in trail
+    //             if (currentView->dracTrail[k] == adjacent[whereCounter]) {
+    //                 isInTrail = TRUE;
+    //             }
+    //         }Location: Budapest
+
+    //         if(isInTrail == FALSE) {
+    //             where[num] = adjacent[whereCounter];
+    //             num++; //only increases if not in trail
+    //         }
+    //     }
+    //     //if doubleBack not true, add all locations on trail except current
+
+    //     if (doubleState == FALSE){
+    //         int l;
+    //         for(l = 1; l<TRAIL_SIZE; l++) { //skip ind 0
+    //             where[num] = currentView->dracTrail[l];
+    //             num++;
+    //         }
+        
+    //     }
+        
+    //     //if hide not true, add current location unless currently at sea
+    //     if ((hideState == FALSE) && (idToType(currentView->dracTrail[0] != SEA)) ){
+    //         where[num] = currentView->dracTrail[0];
+    //         num++;
+    //     }
+    // }
+    
+    // *numLocations = num;
+    // return where;
 }
 
 // What are the specified player's next possible moves
@@ -286,24 +364,48 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
     LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+    LocationID *dracWhere = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
     int i = 0;
+    int j;
     
-    if(player == PLAYER_DRACULA) { //dracula uses the dracula moves
-        where = whereCanIgo(currentView, numLocations, road, sea);
+    if(player == PLAYER_DRACULA) {
+        where = connectedLocations(currentView->game, &i,
+                                   whereIs(currentView, player),PLAYER_DRACULA,
+                                   currentView->round, road, 0, sea);
+        
+        // Need to truncate any cities already in his trail
+
+        // Create a city with his trail
+        Set s = newSet();
+
+        // Set k to 0 (will store new length of where he can go)
+        int k = 0;
+
+        // Make a set storing his trail
+        for (j=0;j<TRAIL_SIZE;j++) {
+            if (currentView->dracTrail[j] != -1) {
+                insertInto(s, idToName(currentView->dracTrail[j]));
+            }
+        }
+
+        // For any city already in his trail, don't add it to where he can go
+        for (j=0;j<i;j++) {
+            if (!isElem(s, idToName(where[j]))) {
+                dracWhere[k] = where[j];
+                k++;
+            }
+        }
+
+        // Return it
+        *numLocations = k;
+        return dracWhere;
+
     }
     
-    else { //hunter
-        // if(getRound(currentView->game)== 0) {//hunter first round, freedom to move anywhere
-        //     for(i = 0; i < NUM_MAP_LOCATIONS; i++) {
-        //         where[i] = i;
-        //     }
-        //     //*numLocations = NUM_MAP_LOCATIONS;
-        // }
-        // else { //else hunter moves adjacent, or multiple by rail, handled by connectedLocations
-            where = connectedLocations(currentView->game, &i,
-                                       whereIs(currentView, player),player,
-                                       currentView->round, road, rail, sea);
-        //}
+    else {
+        where = connectedLocations(currentView->game, &i,
+                                   whereIs(currentView, player),player,
+                                   currentView->round, road, rail, sea);
     }
 
     *numLocations = i;

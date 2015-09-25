@@ -155,13 +155,27 @@ LocationID *getConnectedLocations(int health, int *numLocations,
     // Store the connections (maximum of total number of locations)
     LocationID *connected = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
 
+    // If an invalid from is given return 0 and an empty array (for unknown
+    // Dracula move)
+    if (from < MIN_MAP_LOCATION || from > MAX_MAP_LOCATION) {
+      *numLocations = 0;
+      return connected;
+    }
+
     // Store a set to store locations already seen (add the first connection)
     Set seen = newSet();
     insertInto(seen, idToName(from));
 
-    // Set the first connection as itself
-    connected[0] = from;
-    int i = 1;
+    // Set the first connection as itself (unless it is Dracula, who can't
+    // go stay in the same city without a special move)
+    int i = 0;
+
+    if (player != PLAYER_DRACULA) {
+        connected[0] = from;
+        i = 1;
+    } else {
+
+    }
     
     // Loop through all adjacent cities
     for (curr = g->connections[from]; curr != NULL; curr = curr->next) {

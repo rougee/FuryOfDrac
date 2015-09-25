@@ -45,7 +45,8 @@ struct gameView {
     int health[NUM_PLAYERS];
 
     // Stores all the moves made in a 2d array (current location stored in corresponding upto)
-    int path[NUM_PLAYERS][GAME_START_SCORE*4];
+    // The max number of moves is the greatest number of possible rounds
+    int path[NUM_PLAYERS][GAME_START_SCORE];
     int upto[NUM_PLAYERS];
 };
 
@@ -183,6 +184,9 @@ GameView newGameView(char *pastPlays, PlayerMessage messages[])
                 case DOUBLE_BACK_5:
                     back = 6;
                     break;
+                case HIDE:
+                    back = 2;
+                    break;
                 default:
                     back = -1;
                     break;
@@ -314,7 +318,7 @@ int getHealth(GameView currentView, PlayerID player)
 LocationID getLocation(GameView currentView, PlayerID player)
 {
 
-    // If their health is zero, and they're no Dracula, they must be
+    // If their health is zero, and they're not Dracula, they must be
     // at the hospital
     if (currentView->health[player] == 0 && player != PLAYER_DRACULA) {
         return ST_JOSEPH_AND_ST_MARYS;
@@ -331,7 +335,7 @@ LocationID getLocation(GameView currentView, PlayerID player)
         return currentView->path[player][currentView->upto[player]-1];
     }
 
-    // Otherwise the player must be Dracula there are other possible moves (already stored)
+    // Otherwise just return it (will return special moves if Drac)
     return currentView->path[player][currentView->upto[player]-1];
 }
 

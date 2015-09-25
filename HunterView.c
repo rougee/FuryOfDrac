@@ -11,54 +11,65 @@
 // Extra includes
 #include <stdio.h>
 #include "Map.h"
+#include "set.h"
 
 struct hunterView {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
+
+    // Stores the current round
     int round;
+
+    // Stores the current player
     int currentPlayer;
+
+    // Stores the current score
     int score;
-    int turn;
-    ////////////////////////////////////////////
-    ///////Structs
+
     //Individual arrays for each of size 5;(0,1,2,3 = hunters)4=drac
+
+    // Stores the health
+    int health[NUM_PLAYERS];
+
+    // Stores all the moves made in a 2d array (current location stored in corresponding upto)
     int path[NUM_PLAYERS][GAME_START_SCORE*4];
     int upto[NUM_PLAYERS];
+
+    // Stores the trail of the playesrs
     int trail[NUM_PLAYERS][TRAIL_SIZE]; 
-    int health[NUM_PLAYERS];
+
+    // Stores the game view
     GameView gameView;
-    Map map;
-    //possibly location of traps and vamps?
 };
 
 
 // Creates a new HunterView to summarise the current state of the game
 HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
-{
-    assert(messages != NULL);
-    assert(pastPlays != NULL);
-    
+{    
+    // Initialise the views
     GameView gv = newGameView(pastPlays, messages);
     HunterView hunterView = malloc(sizeof(struct hunterView));
-    int temptrail[TRAIL_SIZE];
-    int i;
-    int j;
     
+    // Initialised needed variables
+    int temptrail[TRAIL_SIZE];
+    int i, j;
+    
+    // Set some of the data using the gameview
     hunterView->gameView = gv;
     hunterView->score = getScore(gv);
     hunterView->round = getRound(gv);
-    hunterView->turn = getCurrentPlayer(gv);    
+    hunterView->currentPlayer = getCurrentPlayer(gv);    
+
+    // Set the health of all the players
     for (i = 0; i < NUM_PLAYERS ; i++){
         hunterView->health[i] = getHealth(gv, i);
     }
+
+    // Set the trail of all the players
     for (i=0; i < NUM_PLAYERS ; i++){
         getHistory(gv, i, temptrail);
         for(j=0 ; j < TRAIL_SIZE ; j++){
             hunterView->trail[i][j] = temptrail[j];
         }
     }
-    //hunterView->location = temptrail[0];
-    hunterView->map = newMap();
-    
     
     return hunterView;
 }
@@ -67,7 +78,6 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the HunterView toBeDeleted
 void disposeHunterView(HunterView toBeDeleted)
 {
-    assert(toBeDeleted != NULL);
     free( toBeDeleted );
 }
 
@@ -77,35 +87,30 @@ void disposeHunterView(HunterView toBeDeleted)
 // Get the current round
 Round giveMeTheRound(HunterView currentView)
 {
-    assert(currentView != NULL);
     return currentView->round;
 }
 
 // Get the id of current player
 PlayerID whoAmI(HunterView currentView)
 {
-    //REPLACE THIS WITH YOUR OWN IMPLEMENTATION
     return currentView->currentPlayer;
 }
 
 // Get the current score
 int giveMeTheScore(HunterView currentView)
 {
-    assert(currentView != NULL);
     return currentView->score;
 }
 
 // Get the current health points for a given player
 int howHealthyIs(HunterView currentView, PlayerID player)
 {
-    assert(currentView != NULL);
     return currentView->health[player];
 }
 
 // Get the current location id of a given player
 LocationID whereIs(HunterView currentView, PlayerID player)
 {
-    assert(currentView != NULL);
     return getLocation(currentView->gameView, player);
 }
 
@@ -114,12 +119,9 @@ LocationID whereIs(HunterView currentView, PlayerID player)
 // Fills the trail array with the location ids of the last 6 turns
 void giveMeTheTrail(HunterView currentView, PlayerID player, LocationID trail[TRAIL_SIZE])
 {
-    assert(currentView != NULL);
-    assert(trail != NULL);
-    assert(player >= 0 && player <= 4);
     int i = 0;  //Counter
 
-    //Loop through currentView trail and fill given trail
+    // Loop through currentView trail and fill given trail
     for (i = 0; i < TRAIL_SIZE; i++) {
         trail[i] = currentView->trail[player][i];
     }

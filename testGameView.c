@@ -214,7 +214,39 @@ int main()
     disposeGameView(gv);
 
 
+
     PlayerMessage genericMessage[] = {"Some generic message"};
+
+    printf("Test for Dracula hiding at sea, and losing blood points (unknown locations) "
+            "and capping of hunter health\n");
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DHI.... ", genericMessage);
+    assert(getLocation(gv,PLAYER_DRACULA) == HIDE);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == HIDE);
+    assert(history[1] == SEA_UNKNOWN);
+    printf("HEALTH %d\n", getHealth(gv,PLAYER_DRACULA));
+    assert(getHealth(gv,PLAYER_DRACULA) == GAME_START_BLOOD_POINTS - 4);
+    assert(getHealth(gv,PLAYER_LORD_GODALMING) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_DR_SEWARD) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_VAN_HELSING) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getHealth(gv,PLAYER_MINA_HARKER) == GAME_START_HUNTER_LIFE_POINTS);
+    assert(getCurrentPlayer(gv) == 0);
+    printf("passed\n");
+    disposeGameView(gv);
+
+
+    printf("Test for Dracula teleporting (unknown locations) "
+            "and capping of hunter health\n");
+    gv = newGameView("GGE.... SGE.... HGE.... MGE.... DS?.... "
+                     "GST.... SST.... HST.... MST.... DTP.... ", genericMessage);
+    assert(getLocation(gv,PLAYER_DRACULA) == TELEPORT);
+    getHistory(gv,PLAYER_DRACULA,history);
+    assert(history[0] == TELEPORT);
+    assert(history[1] == SEA_UNKNOWN);
+    printf("passed\n");
+    disposeGameView(gv);
+
 
     
     printf("Test for single Dracula encounter for 2 players + single trap encounter "
@@ -244,7 +276,6 @@ int main()
     printf("Test 0 health for the first player and updated score\n");
     gv = newGameView("GGEDTT. SGE.... HGE.... MGE.... DC?.... "
                      "GPAT... SPA.... HCF.... MCF.... DC?.... ", genericMessage);
-    printf("SCORE IS %d\n", getScore(gv));
     assert(getScore(gv) == GAME_START_SCORE - 2 - 6);
     assert(getHealth(gv,PLAYER_LORD_GODALMING) == 0);
     printf("passed\n");
@@ -273,6 +304,24 @@ int main()
                       VARNA,SALONICA,PRAGUE,VENICE}; 
     assert(as == 15);
     assert(isEqual(a,as,b,15) == 1);
+    printf("passed\n");
+
+
+    printf("Test connected locations with no rails but rail depth\n");
+    LocationID *c;
+    c = connectedLocations(gv,&as,ST_JOSEPH_AND_ST_MARYS,PLAYER_LORD_GODALMING,3,1,1,1);
+    LocationID d[] = {ST_JOSEPH_AND_ST_MARYS, ZAGREB, SZEGED, BELGRADE, SARAJEVO}; 
+    assert(as == 5);
+    assert(isEqual(c,as,d,5) == 1);
+
+
+    printf("Test connected locations with rails but no rail depth\n");
+    LocationID *e;
+    e = connectedLocations(gv,&as,SZEGED,PLAYER_MINA_HARKER,1,1,1,1);
+    LocationID f[] = {SZEGED,ST_JOSEPH_AND_ST_MARYS,ZAGREB,BUDAPEST,KLAUSENBURG,BELGRADE};
+    assert(as == 6);
+    assert(isEqual(e,as,f,6) == 1);
+
 
     printf("passed\n");
     disposeGameView(gv);
