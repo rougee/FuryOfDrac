@@ -30,7 +30,7 @@ struct hunterView {
     int health[NUM_PLAYERS];
 
     // Stores all the moves made in a 2d array (current location stored in corresponding upto)
-    int path[NUM_PLAYERS][GAME_START_SCORE*4];
+    int path[NUM_PLAYERS][GAME_START_SCORE+1];
     int upto[NUM_PLAYERS];
 
     // Stores the trail of the playesrs
@@ -78,7 +78,8 @@ HunterView newHunterView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the HunterView toBeDeleted
 void disposeHunterView(HunterView toBeDeleted)
 {
-    free( toBeDeleted );
+    free(toBeDeleted->gameView);
+    free(toBeDeleted);
 }
 
 

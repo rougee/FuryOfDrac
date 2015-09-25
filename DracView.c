@@ -174,7 +174,8 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
 // Frees all memory previously allocated for the DracView toBeDeleted
 void disposeDracView(DracView toBeDeleted)
 {
-    free( toBeDeleted );
+    free(toBeDeleted->game);
+    free(toBeDeleted);
 }
 
 
@@ -252,7 +253,7 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
 
     // Location arrays
     LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-    LocationID *dracWhere = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+    
 
     // Variables for looping
     int i = 0;
@@ -260,6 +261,7 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
     
     // If the player is Dracula, it acts differently
     if(player == PLAYER_DRACULA) {
+        LocationID *dracWhere = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
         where = connectedLocations(currentView->game, &i,
                                    whereIs(currentView, player),PLAYER_DRACULA,
                                    currentView->round, road, 0, sea);
@@ -286,6 +288,9 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                 k++;
             }
         }
+
+        // Free this as no longer needed
+        free(where);
 
         // Return it
         *numLocations = k;
