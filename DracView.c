@@ -153,7 +153,6 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
             // Check for traps and vamp hatchling encounters
             for (j=3;j<7;j++) {
                 if (pastPlays[i+j] == 'T') {
-                    printf("Trap encountered at %d\n", currLocationID);
 
                     // Remove trap in current location
                     dracView->locationTraps[currLocationID]--;

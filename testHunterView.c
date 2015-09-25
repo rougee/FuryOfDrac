@@ -270,10 +270,6 @@ int main()
     LocationID *e;
     e = whereCanTheyGo(hv, &as, PLAYER_DRACULA, 1, 1, 1);
     LocationID f[] = {ZAGREB,BUDAPEST,KLAUSENBURG,BELGRADE}; 
-    printf("SIZE IS %d\n", as);
-
-    int k;
-    for (k=0;k<as;k++) printf("Location: %s\n", idToName(e[k]));
     assert(as == 4);
     assert(isEqual(e,as,f,4) == 1);
     printf("passed\n");
