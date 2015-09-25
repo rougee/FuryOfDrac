@@ -45,8 +45,8 @@ struct gameView {
     int health[NUM_PLAYERS];
 
     // Stores all the moves made in a 2d array (current location stored in corresponding upto)
-    // The max number of moves is the greatest number of possible rounds
-    int path[NUM_PLAYERS][GAME_START_SCORE];
+    // The max number of moves is the greatest number of possible rounds + 1 in case
+    int path[NUM_PLAYERS][GAME_START_SCORE+1];
     int upto[NUM_PLAYERS];
 };
 

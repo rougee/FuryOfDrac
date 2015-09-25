@@ -11,8 +11,6 @@
 #include "string.h"
 #include "set.h"
 
-// #include "Map.h" ... if you decide to use the Map ADT
-
 typedef int encounter_type;
 
 #define VAMPIRE_HATCHLING 0
@@ -104,7 +102,7 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
     }
 
     // Stores all of Draculas moves (for traps)
-    LocationID dracMoves[GAME_START_SCORE];
+    LocationID dracMoves[GAME_START_SCORE+1];
     LocationID dracMovesUpto = 0;
 
     // Loop to store locations of all traps and vamps
@@ -144,33 +142,10 @@ DracView newDracView(char *pastPlays, PlayerMessage messages[])
 
                 // Check for expiration for traps and vamp hatchlings
                 if (pastPlays[i+5] == 'M') {
-
                     dracView->locationTraps[oldestLocation]--;
-
-                    
-
-                    // Remove oldest vamp
-                    // for (j=5;j!=0;j--) {
-                    //     if (dracView->dracTrail[j] != -1) {
-                    //         if (dracView->locationVamps[dracView->dracTrail[j]] > 0) {
-                    //             dracView->locationVamps[dracView->dracTrail[j]]--;
-                    //             break;
-                    //         }
-                    //     }
-                    // }
                 } else if (pastPlays[i+5] == 'V') {
-
                     dracView->locationVamps[oldestLocation]--;
 
-                    // Remove oldest trap
-                    // for (j=5;j!=0;j--) {
-                    //     if (dracView->dracTrail[j] != -1) {
-                    //         if (dracView->locationTraps[dracView->dracTrail[j]] > 0) {
-                    //             dracView->locationTraps[dracView->dracTrail[j]]--;
-                    //             break;
-                    //         }
-                    //     }
-                    // }
                 }
             }
         } else {
@@ -267,107 +242,24 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
 // What are my (Dracula's) possible next moves (locations)
 LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int sea)
 {
-    
-    /*THINGS TO NOTE: no train,
-     cannot be on trail,
-     only one hide and one double back at one time,
-     no hospital ever,
-     hide: same city CANNOT HIDE AT SEA,
-     double back: can go back to something on trail  */
-
     return whereCanTheyGo(currentView, numLocations, PLAYER_DRACULA,
                            road, 0, sea);
-    
-    // LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-    // int i, num;
-
-    // where[0] = currentView->location[PLAYER_DRACULA];
-
-    // num = 1;
-    
-    // //first case, first move
-    
-    // if(getRound(currentView->game)== 0) {
-    //     //move anywhere except hospital
-    //     for(i=0; i<NUM_MAP_LOCATIONS; i++) {
-    //         if(i != ST_JOSEPH_AND_ST_MARYS) {
-    //             where[i] = i;
-    //         }
-    //     }
-    //     num = NUM_MAP_LOCATIONS -1;
-    // }
-    
-    // else {
-    //     //first find whether dobule backed or not, hid or not
-    //     int hideState = FALSE;
-    //     int doubleState = FALSE;
-    //     //LocationID *dracTrail;
-    //     getHistory(currentView->game, PLAYER_DRACULA, currentView->dracTrail); // Is that allowed???
-    //     int j;
-    //     for (j=0; j<TRAIL_SIZE; j++){
-    //         if(currentView->dracTrail[j] == HIDE){
-    //             hideState = TRUE; //hidden
-    //         }
-    //         if( (currentView->dracTrail[j] <= DOUBLE_BACK_5) && (currentView->dracTrail[j] >= DOUBLE_BACK_1)){
-    //             doubleState = TRUE;  //double backed
-    //             //int doubleNum = dracTrail[j] - DOUBLE_BACK_CONVERSION; //converts to 1-5
-    //         }
-    //     }
-        
-    //     //add all adjacent except those on  trail
-    //     //first get adjacents
-    //     int tempNum;
-    //     LocationID *adjacent = connectedLocations(currentView->game, &tempNum,
-    //                                               whereIs(currentView, PLAYER_DRACULA),
-    //                                               PLAYER_DRACULA,
-    //                                               getRound(currentView->game), road, FALSE, sea);
-    //     //copy to the adjacent array elements that are not on the trail
-    //     int whereCounter;
-    //     int k;
-    //     for(whereCounter=0; whereCounter < tempNum; whereCounter++) { //for each adjacent
-    //         int isInTrail = FALSE;
-    //         for (k=0; k<TRAIL_SIZE; k++) { //check if its in trail
-    //             if (currentView->dracTrail[k] == adjacent[whereCounter]) {
-    //                 isInTrail = TRUE;
-    //             }
-    //         }Location: Budapest
-
-    //         if(isInTrail == FALSE) {
-    //             where[num] = adjacent[whereCounter];
-    //             num++; //only increases if not in trail
-    //         }
-    //     }
-    //     //if doubleBack not true, add all locations on trail except current
-
-    //     if (doubleState == FALSE){
-    //         int l;
-    //         for(l = 1; l<TRAIL_SIZE; l++) { //skip ind 0
-    //             where[num] = currentView->dracTrail[l];
-    //             num++;
-    //         }
-        
-    //     }
-        
-    //     //if hide not true, add current location unless currently at sea
-    //     if ((hideState == FALSE) && (idToType(currentView->dracTrail[0] != SEA)) ){
-    //         where[num] = currentView->dracTrail[0];
-    //         num++;
-    //     }
-    // }
-    
-    // *numLocations = num;
-    // return where;
 }
 
 // What are the specified player's next possible moves
 LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
+
+    // Location arrays
     LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
     LocationID *dracWhere = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+
+    // Variables for looping
     int i = 0;
     int j;
     
+    // If the player is Dracula, it acts differently
     if(player == PLAYER_DRACULA) {
         where = connectedLocations(currentView->game, &i,
                                    whereIs(currentView, player),PLAYER_DRACULA,
@@ -403,6 +295,8 @@ LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
     }
     
     else {
+
+        // Otherwise just do it like normal
         where = connectedLocations(currentView->game, &i,
                                    whereIs(currentView, player),player,
                                    currentView->round, road, rail, sea);
