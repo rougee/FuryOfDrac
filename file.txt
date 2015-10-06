@@ -1,0 +1,167 @@
+
+Checking your files...
+Makefile
+
+dracula.c
+
+hunter.c
+
+GameView.c
+
+GameView.h
+
+HunterView.c
+
+HunterView.h
+
+DracView.c
+
+DracView.h
+
+Makefile
+
+DracView.c
+
+GameView.c
+
+HunterView.c
+
+Map.c
+
+Places.c
+
+dracula.c
+
+hunter.c
+
+player.c
+
+queue.c
+
+set.c
+
+DracView.h
+
+Game.h
+
+GameView.h
+
+Globals.h
+
+HunterView.h
+
+Map.h
+
+Places.h
+
+dracula.h
+
+hunter.h
+
+queue.h
+
+set.h
+
+=== Modifying your Makefile ...
+=== Modified Makefile
+# Makefile for "Fury of Dracula": The Hunt
+
+# change these to suit your local C environment
+CC = gcc
+CFLAGS = -Wall -Werror
+# do not change the following line
+BINS = dracula hunter
+# add any other *.o files that your system requires
+# (and add their dependencies below after DracView.o)
+# if you're not using Map.o or Places.o, you can remove them
+OBJS = GameView.o Map.o Places.o set.o queue.o
+# add whatever system libraries you need here (e.g. -lm)
+LIBS = -ljansson
+
+all : $(BINS)
+
+dracula : dracPlayer.o dracula.o DracView.o $(OBJS) $(LIBS)
+hunter : hunterPlayer.o hunter.o HunterView.o $(OBJS) $(LIBS)
+
+dracPlayer.o : player.c Game.h DracView.h dracula.h
+	$(CC)  -DI_AM_DRACULA -c player.c -o dracPlayer.o
+
+hunterPlayer.o : player.c Game.h HunterView.h hunter.h
+	$(CC)  -c player.c -o hunterPlayer.o
+
+dracula.o : dracula.c Game.h DracView.h set.c set.h queue.c queue.h Map.c Map.h Places.h
+hunter.o : hunter.c Game.h HunterView.h set.c set.h queue.c queue.h Map.c Map.h Places.h
+Places.o : Places.c Places.h
+Map.o : set.c set.h queue.c queue.h Map.c Map.h Places.h
+GameView.o : GameView.c Globals.h GameView.h   set.c set.h Map.c Map.h
+HunterView.o : HunterView.c Globals.h HunterView.h    set.c set.h Map.c Map.h
+DracView.o : DracView.c Globals.h DracView.h  set.c set.h Map.c Map.h
+# if you use other ADTs, add dependencies for them here
+
+set.o : set.c set.h
+queue.o : queue.c queue.h
+
+clean :
+	rm -f $(BINS) *.o core
+
+
+=== Compiling Dracula ...
+gcc -Wall -Werror   -c -o dracula.o dracula.c
+gcc  -DI_AM_DRACULA -c player.c -o dracPlayer.o
+gcc -Wall -Werror   -c -o DracView.o DracView.c
+gcc -Wall -Werror   -c -o GameView.o GameView.c
+gcc -Wall -Werror   -c -o Map.o Map.c
+gcc -Wall -Werror   -c -o Places.o Places.c
+gcc -Wall -Werror   -c -o set.o set.c
+gcc -Wall -Werror   -c -o queue.o queue.c
+gcc   dracula.o dracPlayer.o DracView.o GameView.o Map.o Places.o set.o queue.o /usr/lib/libjansson.so   -o dracula
+Dracula AI compiled OK
+=== Compiling Hunter ...
+gcc -Wall -Werror   -c -o hunter.o hunter.c
+gcc  -c player.c -o hunterPlayer.o
+gcc -Wall -Werror   -c -o HunterView.o HunterView.c
+gcc   hunter.o hunterPlayer.o HunterView.o GameView.o Map.o Places.o set.o queue.o /usr/lib/libjansson.so   -o hunter
+Hunter AI compiled OK
+
+=== Playing your Hunter against your Dracula ...
+
+   The FURY of DRACULA   
+          _..._          
+        .'     '.        
+       ; __   __ ;       
+       |/  \ /  \|       
+     |\| -- ' -- |/|     
+     |(| \o| |o/ |)|     
+     _\|    U    |/_     
+  .-'  | ,.___., |  '-.  
+  \    ;  V'-'V  ;    /  
+   `\   \       /   /`   
+     `\  '-...-'  /`     
+       `\  / \  /`       
+         `\\_//`         
+...........................
+--------------------------------------------------------------------------
+> Running player 0... 
+/tmp/dryrun5367/hunter
+Running with input: "pastPlays": ""
+Program exited with code: 254
+==============================================================
+Program Output: /usr/bin/valgrind: fork: retry: Resource temporarily unavailable
+/usr/bin/valgrind: fork: retry: Resource temporarily unavailable
+/usr/bin/valgrind: fork: retry: Resource temporarily unavailable
+/usr/bin/valgrind: fork: retry: Resource temporarily unavailable
+/usr/bin/valgrind: fork: Resource temporarily unavailable
+
+==============================================================
+Move data parse error: ""
+[SyntaxError: Unexpected end of input]
+This usually means your program crashed before making a move.
+Move:  {}
+> Player 0 disqualified for illegal move.
+> +++ 
+> --- 
+Default Hunter Move "JM"
+--------------------------------------------------------------------------
+> Running player 1... 
+/tmp/dryrun5367/hunter
+Running with input: "pastPlays": "GJM...."
