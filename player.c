@@ -48,14 +48,14 @@ int main(int argc, char *argv[])
 #ifdef I_AM_DRACULA
    DracView gameState;
    //char *plays = "GZA.... SED.... HZU.... MZU....";
-   char *plays =  "";
+   char *plays =  "GAM.... SCN.... HZU.... MCD.... DC?.V..";
    PlayerMessage msgs[3] = { "", "", "" };
    gameState = newDracView(plays,msgs);
    decideDraculaMove(gameState);
    disposeDracView(gameState);
 #else
    HunterView gameState;
-   char *plays = "";
+   char *plays = "GAM.... SCN.... HZU.... MCD.... DC?.V..";
    //char *plays =  "GAM.... SAM.... HAM.... MAM.... DGE.V.. GNS.... SCO.... HBU.... MAM....";
    PlayerMessage msgs[3] = { "", "", "" };
    gameState = newHunterView(plays,msgs);

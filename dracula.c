@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "DracView.h"
 
+#include <time.h>
 #include "Globals.h"
 #include "Places.h"
 
@@ -15,6 +16,11 @@
 
 void decideDraculaMove(DracView gameState)
 {
+	
+	// Get random number
+	srand(time(NULL));
+	int r = rand();
+
 	// Create the move character (make default GE)
 	char *move = "GE";
 
@@ -42,6 +48,12 @@ void decideDraculaMove(DracView gameState)
 		int canMove = FALSE;
 		int inTrail;
 
+		LocationID *movesWithoutTrail = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+		int movesWithoutTrailNum = 0;
+
+		LocationID *movesWithoutTrailSea = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+		int movesWithoutTrailSeaNum = 0;
+
 		// Start at 0, and keep going until the move isn't in Dracula's trail
 		LocationID currLocation;
 
@@ -61,9 +73,18 @@ void decideDraculaMove(DracView gameState)
 			
 			// Set the move if not in the trail and break
 			if (!inTrail) {
-				move = idToAbbrev(possibleMoves[i]);
+
+				// Add it to list of possible moves
+				movesWithoutTrail[movesWithoutTrailNum] = currLocation;
+				movesWithoutTrailNum++;
+
+				// If its not a sea, add it to possible moves with exclude seas
+				if (idToType(currLocation) != SEA) {
+					movesWithoutTrailSea[movesWithoutTrailSeaNum] = currLocation;
+					movesWithoutTrailSeaNum++;
+				}
+
 				canMove = TRUE;
-				break;
 			}
 
 		}
@@ -72,6 +93,15 @@ void decideDraculaMove(DracView gameState)
 		if (!canMove) {
 			// No valid mvoes, so teleport
 			move = "TP";
+		} else {
+
+			// Try for land move, otherwise move into the sea
+			if (movesWithoutTrailNum > 0) {
+				move = idToAbbrev(movesWithoutTrail[r%movesWithoutTrailNum]);
+			} else {
+				move = idToAbbrev(movesWithoutTrailSea[r%movesWithoutTrailSeaNum]);
+			}
+
 		}
 	}
 	
