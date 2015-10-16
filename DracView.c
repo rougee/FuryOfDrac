@@ -202,6 +202,11 @@ int howHealthyIs(DracView currentView, PlayerID player)
 // Get the current location id of a given player
 LocationID whereIs(DracView currentView, PlayerID player)
 {
+    if (player == PLAYER_DRACULA) {
+        LocationID trail[TRAIL_SIZE];
+        giveMeTheFullTrail(currentView, PLAYER_DRACULA, trail);
+        return trail[0];
+    }
     return getLocation(currentView->game, player);
 }
 

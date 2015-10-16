@@ -35,17 +35,13 @@ static LocationID getBestMove(moveState *moves, int length, int smallestWeight) 
 
     for (i=0;i<length;i++) {
         if (moves[i]->weight <= smallestWeight) {
-            printf("THe move is %d\n", moves[i]->move);
+            printf("The move is %d\n", moves[i]->move);
             smallestWeightMoves[num] = moves[i]->move;
             num++;
         }
     }
 
-    if (num == 0) {
-        index = 0;
-    } else {
-        index = r%num;
-    }
+    index = r%num;
 
     printf("The best move %d, %d of %d\n", smallestWeightMoves[index], index, num);
 
@@ -82,7 +78,7 @@ void decideDraculaMove(DracView gameState)
     char *move = "GE";
 
     // Get the possible moves
-    int numberOfPossibleMoves;
+    int numberOfPossibleMoves, numberOfActualMoves;
     LocationID *possibleMoves = (LocationID*)whereCanIgo(gameState, &numberOfPossibleMoves, 1, 1);
 
     // Get Dracula's trail
@@ -94,12 +90,70 @@ void decideDraculaMove(DracView gameState)
 
     int i, j;
 
-    if (numberOfPossibleMoves == 0 && giveMeTheRound(gameState) == 0) {
+    // Otherwise, move randomly
+    int inTrail;
+    int smallestWeight = 9;
+
+    moveState *moveChoices = calloc(NUM_MAP_LOCATIONS, sizeof(moveState));
+    int moveChoicesNum = 0;
+
+    moveState currMove;
+
+    // Start at 0, and keep going until the move isn't in Dracula's trail
+    LocationID currLocation;
+
+    numberOfActualMoves = 0;
+
+    // For each possible move, if it's not in the trail, set the move as that
+    for (i=0;i<numberOfPossibleMoves;i++) {
+
+        inTrail = FALSE;
+        currLocation = possibleMoves[i];
+
+        for (j=0;j<TRAIL_SIZE;j++) {
+            if (currLocation == trail[j]) {
+                inTrail = TRUE;
+            }
+        }
+
+        
+        // Set the move if not in the trail and break
+        if (!inTrail) {
+
+            numberOfActualMoves++;
+
+            currMove = malloc(sizeof(_moveState));
+            currMove->move = currLocation;
+            currMove->weight = 1;
+            moveChoices[moveChoicesNum] = currMove;
+            moveChoicesNum++;
+
+            // If its not a sea, add it to possible moves with exclude seas
+            if (idToType(currLocation) == SEA) {
+                currMove->weight = 2;
+            }
+
+            if (currMove->weight < smallestWeight) {
+                smallestWeight = currMove->weight;
+            }
+        }
+    }
+
+    if (numberOfActualMoves == 0 && giveMeTheRound(gameState) == 0) {
 
         // Leave the move as the default location (start of game)
 
-    } else if (numberOfPossibleMoves == 0) {
+    } else if (numberOfActualMoves == 0) {
         // If there are no valid moves, try hide or double back
+
+        for (i=0;i<TRAIL_SIZE;i++) {
+            if (trail[i] > 0 && trail[i] < 70) {
+                printf("%s->", idToName(trail[i]));
+            } else {
+                printf("%d->", trail[i]);
+            }
+        }
+        printf("\n");
 
         if (!isHideInTrail(trail)) {
             move = "HI";
@@ -136,55 +190,6 @@ void decideDraculaMove(DracView gameState)
             move = "TP";
         }
     } else {
-
-        // Otherwise, move randomly
-        int inTrail;
-        int smallestWeight = 9;
-
-        moveState *moveChoices = calloc(NUM_MAP_LOCATIONS, sizeof(moveState));
-        int moveChoicesNum = 0;
-
-        moveState currMove;
-
-        // Start at 0, and keep going until the move isn't in Dracula's trail
-        LocationID currLocation;
-
-        // For each possible move, if it's not in the trail, set the move as that
-        for (i=0;i<numberOfPossibleMoves;i++) {
-
-            inTrail = FALSE;
-            currLocation = possibleMoves[i];
-
-            for (j=0;j<TRAIL_SIZE;j++) {
-                if (currLocation == trail[j]) {
-                    inTrail = TRUE;
-                }
-            }
-
-            
-            // Set the move if not in the trail and break
-            if (!inTrail) {
-
-                currMove = malloc(sizeof(_moveState));
-                currMove->move = currLocation;
-                currMove->weight = 1;
-                moveChoices[moveChoicesNum] = currMove;
-                moveChoicesNum++;
-
-                // If its not a sea, add it to possible moves with exclude seas
-                if (idToType(currLocation) == SEA) {
-                    currMove->weight = 2;
-                }
-
-                if (currMove->weight < smallestWeight) {
-                    smallestWeight = currMove->weight;
-                }
-            }
-        }
-
-        for (i=0;i<moveChoicesNum;i++) {
-            printf("Value is %d\n", moveChoices[i]->move);
-        }
 
         move = idToAbbrev(getBestMove(moveChoices, moveChoicesNum, smallestWeight));
         
