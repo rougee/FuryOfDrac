@@ -237,6 +237,53 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
     getHistory(currentView->game, player, trail);
 }
 
+void giveMeTheFullTrail(DracView currentView, PlayerID player,
+                    LocationID trail[TRAIL_SIZE])
+{
+    int i;
+
+    LocationID tempTrail[TRAIL_SIZE];
+
+    // Get the trail, and then replace special moves with actual location
+    getHistory(currentView->game, player, tempTrail);
+
+    for (i=0;i<TRAIL_SIZE;i++) {
+        if (tempTrail[i] < MIN_MAP_LOCATION || tempTrail[i] > MAX_MAP_LOCATION) {
+            int *path = getPath(currentView->game, PLAYER_DRACULA);
+            int upto = getUpto(currentView->game, PLAYER_DRACULA);
+            switch (tempTrail[i]) {
+                case HIDE:
+                    trail[i] = path[upto-i-2];
+                    break;
+                case DOUBLE_BACK_1:
+                    trail[i] = path[upto-i-2];
+                    break;
+                case DOUBLE_BACK_2:
+                    trail[i] = path[upto-i-3];
+                    break;
+                case DOUBLE_BACK_3:
+                    trail[i] = path[upto-i-4];
+                    break;
+                case DOUBLE_BACK_4:
+                    trail[i] = path[upto-i-5];
+                    break;
+                case DOUBLE_BACK_5:
+                    trail[i] = path[upto-i-6];
+                    break;
+                case TELEPORT:
+                    trail[i] = CASTLE_DRACULA;
+                    break;
+                default:
+                    trail[i] = tempTrail[i];
+                    break;
+                }
+        } else {
+            trail[i] = tempTrail[i];
+        }
+    }
+
+}
+
 //// Functions that query the map to find information about connectivity
 
 // What are my (Dracula's) possible next moves (locations)
@@ -250,62 +297,15 @@ LocationID *whereCanIgo(DracView currentView, int *numLocations, int road, int s
 LocationID *whereCanTheyGo(DracView currentView, int *numLocations,
                            PlayerID player, int road, int rail, int sea)
 {
-
     // Location arrays
     LocationID *where = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
     
-
     // Variables for looping
     int i = 0;
-    int j;
-    
-    // If the player is Dracula, it acts differently
-    if(player == PLAYER_DRACULA) {
-        LocationID *dracWhere = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-        where = connectedLocations(currentView->game, &i,
-                                   whereIs(currentView, player),PLAYER_DRACULA,
-                                   currentView->round, road, 0, sea);
-        
-        // Need to truncate any cities already in his trail
-
-        // Create a city with his trail
-        Set s = newSet();
-
-        // Set k to 0 (will store new length of where he can go)
-        int k = 0;
-
-        // Make a set storing his trail
-        for (j=0;j<TRAIL_SIZE;j++) {
-            if (currentView->dracTrail[j] != -1) {
-                insertInto(s, idToName(currentView->dracTrail[j]));
-            }
-        }
-
-        // For any city already in his trail, don't add it to where he can go
-        for (j=0;j<i;j++) {
-            if (!isElem(s, idToName(where[j]))) {
-                dracWhere[k] = where[j];
-                k++;
-            }
-        }
-
-        // Free this as no longer needed
-        free(where);
-
-        // Return it
-        *numLocations = k;
-        return dracWhere;
-
-    }
-    
-    else {
-
-        // Otherwise just do it like normal
-        where = connectedLocations(currentView->game, &i,
-                                   whereIs(currentView, player),player,
-                                   currentView->round, road, rail, sea);
-    }
-
+    // Otherwise just do it like normal
+    where = connectedLocations(currentView->game, &i,
+                               whereIs(currentView, player),player,
+                               currentView->round, road, rail, sea);
     *numLocations = i;
     return where;
 }

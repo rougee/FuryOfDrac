@@ -101,6 +101,10 @@ void giveMeTheTrail(DracView currentView, PlayerID player,
                         LocationID trail[TRAIL_SIZE]);
 
 
+void giveMeTheFullTrail(DracView currentView, PlayerID player,
+                    LocationID trail[TRAIL_SIZE]);
+
+
 //// Functions that query the map to find information about connectivity
 
 // whereCanIgo() returns an array of LocationIDs giving

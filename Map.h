@@ -28,5 +28,6 @@ int  numE(Map g, TransportID t);
 LocationID *getConnectedLocations(int health, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea);
+int isAdjacent(LocationID loc, LocationID finish);
 
 #endif

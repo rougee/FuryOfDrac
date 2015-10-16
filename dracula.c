@@ -9,25 +9,75 @@
 #include <time.h>
 #include "Globals.h"
 #include "Places.h"
+#include "Map.h"
 
 
 #define TRUE  1
 #define FALSE 0
 
-typedef moveState *_moveState
+typedef int bool;
+
+typedef struct _moveState *moveState;
 
 struct _moveState {
    LocationID  move;   // The move
    int         weight; // It's weighting
-};
+} _moveState;
 
-void decideDraculaMove(DracView gameState)
-{
-    
+static LocationID getBestMove(moveState *moves, int length, int smallestWeight) {
+    LocationID *smallestWeightMoves = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+    int i, index;
+    int num = 0;
+
     // Get random number
     srand(time(NULL));
     int r = rand();
 
+    for (i=0;i<length;i++) {
+        if (moves[i]->weight <= smallestWeight) {
+            printf("THe move is %d\n", moves[i]->move);
+            smallestWeightMoves[num] = moves[i]->move;
+            num++;
+        }
+    }
+
+    if (num == 0) {
+        index = 0;
+    } else {
+        index = r%num;
+    }
+
+    printf("The best move %d, %d of %d\n", smallestWeightMoves[index], index, num);
+
+    LocationID bestMove = smallestWeightMoves[index];
+
+    free(smallestWeightMoves);
+    return bestMove;
+}
+
+static bool isHideInTrail(LocationID trail[]) {
+    int i;
+    for (i=0;i<TRAIL_SIZE;i++) {
+        if (trail[i] == HIDE) {
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+static int isDoubleBackInTrail(LocationID trail[]) {
+    int i;
+    for (i=0;i<TRAIL_SIZE;i++) {
+        if (trail[i] >= DOUBLE_BACK_1 && trail[i] <= DOUBLE_BACK_5) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+void decideDraculaMove(DracView gameState)
+{
     // Create the move character (make default GE)
     char *move = "GE";
 
@@ -39,6 +89,9 @@ void decideDraculaMove(DracView gameState)
     LocationID trail[TRAIL_SIZE];
     giveMeTheTrail(gameState, PLAYER_DRACULA, trail);
 
+    LocationID fullTrail[TRAIL_SIZE];
+    giveMeTheFullTrail(gameState, PLAYER_DRACULA, fullTrail);
+
     int i, j;
 
     if (numberOfPossibleMoves == 0 && giveMeTheRound(gameState) == 0) {
@@ -46,20 +99,52 @@ void decideDraculaMove(DracView gameState)
         // Leave the move as the default location (start of game)
 
     } else if (numberOfPossibleMoves == 0) {
-        // If there are no valid moves, teleport
-        move[0] = 'T';
-        move[1] = 'P';
+        // If there are no valid moves, try hide or double back
+
+        if (!isHideInTrail(trail)) {
+            move = "HI";
+        } else if (!isDoubleBackInTrail(trail)) {
+            int doubleBack = 2;
+
+            for (i=1;i<TRAIL_SIZE-1;i++) {
+                if (isAdjacent(whereIs(gameState, PLAYER_DRACULA), fullTrail[i])) {
+                    break;
+                    doubleBack++;
+                }
+            }
+
+            switch (doubleBack) {
+                case 2:
+                    move = "D2";
+                    break;
+                case 3:
+                    move = "D3";
+                    break;
+                case 4:
+                    move = "D4";
+                    break;
+                case 5:
+                    move = "D5";
+                    break;
+                default:
+                     move = "D1";
+                    break;
+                }
+
+
+        } else {
+            move = "TP";
+        }
     } else {
 
         // Otherwise, move randomly
-        int canMove = FALSE;
         int inTrail;
+        int smallestWeight = 9;
 
-        LocationID *movesWithoutTrail = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-        int movesWithoutTrailNum = 0;
+        moveState *moveChoices = calloc(NUM_MAP_LOCATIONS, sizeof(moveState));
+        int moveChoicesNum = 0;
 
-        LocationID *movesWithoutTrailSea = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
-        int movesWithoutTrailSeaNum = 0;
+        moveState currMove;
 
         // Start at 0, and keep going until the move isn't in Dracula's trail
         LocationID currLocation;
@@ -69,7 +154,6 @@ void decideDraculaMove(DracView gameState)
 
             inTrail = FALSE;
             currLocation = possibleMoves[i];
-
 
             for (j=0;j<TRAIL_SIZE;j++) {
                 if (currLocation == trail[j]) {
@@ -81,36 +165,34 @@ void decideDraculaMove(DracView gameState)
             // Set the move if not in the trail and break
             if (!inTrail) {
 
-                // Add it to list of possible moves
-                movesWithoutTrail[movesWithoutTrailNum] = currLocation;
-                movesWithoutTrailNum++;
+                currMove = malloc(sizeof(_moveState));
+                currMove->move = currLocation;
+                currMove->weight = 1;
+                moveChoices[moveChoicesNum] = currMove;
+                moveChoicesNum++;
 
                 // If its not a sea, add it to possible moves with exclude seas
-                if (idToType(currLocation) != SEA) {
-                    movesWithoutTrailSea[movesWithoutTrailSeaNum] = currLocation;
-                    movesWithoutTrailSeaNum++;
+                if (idToType(currLocation) == SEA) {
+                    currMove->weight = 2;
                 }
 
-                canMove = TRUE;
+                if (currMove->weight < smallestWeight) {
+                    smallestWeight = currMove->weight;
+                }
             }
-
         }
 
-
-        if (!canMove) {
-            // No valid mvoes, so teleport
-            move = "TP";
-        } else {
-
-            // Try for land move, otherwise move into the sea
-            if (movesWithoutTrailNum > 0) {
-                move = idToAbbrev(movesWithoutTrail[r%movesWithoutTrailNum]);
-            } else {
-                move = idToAbbrev(movesWithoutTrailSea[r%movesWithoutTrailSeaNum]);
-            }
-
+        for (i=0;i<moveChoicesNum;i++) {
+            printf("Value is %d\n", moveChoices[i]->move);
         }
+
+        move = idToAbbrev(getBestMove(moveChoices, moveChoicesNum, smallestWeight));
+        
+        for (i=0;i<moveChoicesNum;i++) {
+            free(moveChoices[i]);
+        }
+        free(moveChoices);
     }
-    
+
     registerBestPlay(move,"");
 }

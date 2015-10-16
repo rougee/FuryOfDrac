@@ -5,6 +5,8 @@
 #include <string.h>
 #include "Places.h"
 
+#include <stdio.h>
+
 typedef struct Place {
    char      *name;
    char      *abbrev;

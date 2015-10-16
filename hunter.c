@@ -79,6 +79,8 @@ void decideHunterMove(HunterView gameState)
 				move = idToAbbrev(possibleMoves[r%numberOfPossibleMoves]);
 			}
 		}
+
+		free(movesWithoutCurr);
 	}
 
     registerBestPlay(move, "");

@@ -127,4 +127,8 @@ LocationID *connectedLocations(GameView currentView, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea);
 
+int *getPath(GameView currentView, int player);
+
+int getUpto(GameView currentView, int player);
+
 #endif

@@ -139,7 +139,6 @@ int numE(Map g, TransportID type)
 LocationID *getConnectedLocations(int health, int *numLocations,
                                LocationID from, PlayerID player, Round round,
                                int road, int rail, int sea) {
-
     // If the player's current health is 0 and they're not Dracula, they
     // must be at the hospital
     if (health == 0 && player != PLAYER_DRACULA) {
@@ -263,6 +262,21 @@ LocationID *getConnectedLocations(int health, int *numLocations,
 
     *numLocations = i;
     return connected;
+}
+
+int isAdjacent(LocationID start, LocationID finish) {
+    VList curr;
+
+    Map g = newMap();
+
+    for (curr = g->connections[start]; curr != NULL; curr = curr->next) {
+        if (curr->v == finish) {
+            return 1;
+        }
+    }
+
+    disposeMap(g);
+    return 0;
 }
 
 // Add edges to Graph representing map of Europe
