@@ -30,4 +30,7 @@ LocationID *getConnectedLocations(int health, int *numLocations,
                                int road, int rail, int sea);
 int isAdjacent(LocationID loc, LocationID finish);
 
+LocationID *shortestPath(LocationID from, LocationID to, int weightedMap[], int *length,
+                         int road, int rail, int sea);
+
 #endif

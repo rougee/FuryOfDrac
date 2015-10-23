@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "Map.h"
 #include "Places.h"
+#include "queue.h"
 
 
 typedef struct vNode *VList;
@@ -488,4 +489,102 @@ static void addConnections(Map g)
    addLink(g, MEDITERRANEAN_SEA, TYRRHENIAN_SEA, BOAT);
    addLink(g, NAPLES, TYRRHENIAN_SEA, BOAT);
    addLink(g, ROME, TYRRHENIAN_SEA, BOAT);
+}
+
+LocationID *shortestPath(LocationID from, LocationID to, int weightedMap[], int *length,
+                         int road, int rail, int sea) {
+
+    // Store the previous city for each city
+    LocationID pred[NUM_MAP_LOCATIONS];
+    int weight[NUM_MAP_LOCATIONS];
+
+    // Variables for looping
+    int i;
+    LocationID currQueue;
+    VList currAdjacent;
+
+    // The map
+    Map g = newMap();
+
+    // Set them as unknown locations initially and weight as "infinity"
+    for (i=0;i<NUM_MAP_LOCATIONS;i++) {
+        pred[i] = UNKNOWN_LOCATION;
+        weight[i] = 9999;
+    }
+
+    // Make the starting city weigh nothing
+    weight[from] = 0;
+
+    // Create the set
+    Set s = newSet();
+
+    // Create the queue and insert the starting city
+    Queue q = newQueue();
+    enterQueue(q, idToName(from));
+    insertInto(s, idToName(from));
+
+    // While the queue is not empty do the dijkstra's
+    while (!emptyQueue(q)) {
+
+
+        // Get an item from the queue
+        currQueue = nameToID(leaveQueue(q));
+        insertInto(s, idToName(currQueue));
+
+        //printf("Currently checking %s\n", idToName(currQueue));
+
+        // For each adjacent city add it to the queue, and adjust weights and pred
+        for (currAdjacent = g->connections[currQueue]; currAdjacent != NULL; currAdjacent = currAdjacent->next) { 
+
+            // Add allowed
+            if ((currAdjacent->type == ROAD && road) ||
+                (currAdjacent->type == RAIL && rail) ||
+                (currAdjacent->type == BOAT && sea)) {
+
+                if (!isElem(s, idToName(currAdjacent->v))) {
+                    enterQueue(q, idToName(currAdjacent->v));
+
+                    // If the weight is smaller than the current one, change the weight and pred for it
+                    if (weightedMap[currAdjacent->v] + weight[currQueue] < weight[currAdjacent->v]) {
+                        weight[currAdjacent->v] = weightedMap[currAdjacent->v] + weight[currQueue];
+                        pred[currAdjacent->v] = currQueue;
+                    }
+                }
+            }
+        }
+    }
+
+    // Start from the final city, and backtrack to get the final shortest path
+    LocationID curr = to;
+    *length = 0;
+
+    LocationID *shortPath = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+
+    // Add the final location
+    shortPath[0] = to;
+
+    while (curr != from) {
+        shortPath[*length] = curr;
+        curr = pred[curr];
+        *length = *length + 1;
+    }
+
+    // Add the initial location
+    shortPath[*length] = curr;
+    *length = *length + 1;
+
+    // Reverse it (to make it nicer)
+    LocationID *shortProperPath = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+
+    int k=0;
+    for (i=*length-1;i>=0;i--) {
+        shortProperPath[k] = shortPath[i];
+        k++;
+    }
+
+    // Free the stuff
+    disposeMap(g);
+    free(shortPath);
+
+    return shortProperPath;
 }
