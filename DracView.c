@@ -252,17 +252,26 @@ void giveMeTheFullTrail(DracView currentView, PlayerID player,
     // Get the trail, and then replace special moves with actual location
     getHistory(currentView->game, player, tempTrail);
 
+
     for (i=0;i<TRAIL_SIZE;i++) {
         if (tempTrail[i] < MIN_MAP_LOCATION || tempTrail[i] > MAX_MAP_LOCATION) {
             int *path = getPath(currentView->game, PLAYER_DRACULA);
-            int upto = getUpto(currentView->game, PLAYER_DRACULA) - i;
+            int upto = getUpto(currentView->game, PLAYER_DRACULA) - i - 1;
+
             trail[i] = tempTrail[i];
             if (trail[i] == TELEPORT) {
                 trail[i] = CASTLE_DRACULA;
             } else {
                 while (trail[i] < MIN_MAP_LOCATION || trail[i] > MAX_MAP_LOCATION) {
-                    trail[i] = path[upto-(trail[i]-100)]; // 100's the magic number for this
-                    upto = upto - (trail[i]-100);
+
+                    // If its a hide treat it as a double back 1
+                    if (trail[i] == HIDE) {
+                        upto = upto - 1;
+                        trail[i] = path[upto];
+                    } else {
+                        upto = upto - (trail[i]-HIDE);
+                        trail[i] = path[upto];
+                    }
                 }
             }
         } else {

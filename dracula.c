@@ -71,13 +71,6 @@ void decideDraculaMove(DracView gameState)
     // Weight the map
     weighMap(weightedMap, gameState);
 
-
-    // for (i=0;i<6;i++) {
-    //     printf("%d is %d\n", i, fullTrail[i]);
-    // }
-
-    // printf("Current location is %d\n", fullTrail[0]);
-
     // Other variables needed
     int inTrail;
     int smallestWeight = MAX_WEIGHT;
@@ -128,13 +121,14 @@ void decideDraculaMove(DracView gameState)
             smallestWeight = moveChoices[i]->weight;
         }
     }
-
+    
+    printf("Currently at %s\n", idToName(whereIs(gameState, PLAYER_DRACULA)));
     printf("Number of moves %d\n", numberOfActualMoves);
 
-    // If there are no valid moves and it is round 0, then Dracual can 
+    // If it is round 0, then Dracual can 
     // go wherever
-    if (numberOfActualMoves == 0 && giveMeTheRound(gameState) == 0) {
-
+    printf("Round number is %d\n", giveMeTheRound(gameState));
+    if (giveMeTheRound(gameState) == 0) {
         // Leave the move as the default location (start of game)
 
     } else if (numberOfActualMoves == 0) {
@@ -281,7 +275,7 @@ void weighMap(int weightedMap[], DracView gameState) {
     for (player=0;player<NUM_PLAYERS-1;player++) {
 
         // Weigh the location of the hunter
-        weightedMap[whereIs(gameState, player)] += 10;
+        weightedMap[whereIs(gameState, player)] += 30;
 
         // Get the connected locations (just pass in values to make the function happy)
         possibleMoves = (LocationID*)getConnectedLocations(40, &numOfConnected,
@@ -290,7 +284,7 @@ void weighMap(int weightedMap[], DracView gameState) {
 
         // For each of those connections increment their weights and add it to the queue
         for (i=0;i<numOfConnected;i++) {
-            weightedMap[possibleMoves[i]] += 5;
+            weightedMap[possibleMoves[i]] += 15;
             enterQueue(cities, idToName(possibleMoves[i]));
         }
 
@@ -306,7 +300,7 @@ void weighMap(int weightedMap[], DracView gameState) {
 
             // For each of these increment their weights
             for (i=0;i<numOfConnected;i++) {
-                weightedMap[possibleMoves[i]] += 2;
+                weightedMap[possibleMoves[i]] += 10;
             }
 
         }
@@ -315,7 +309,7 @@ void weighMap(int weightedMap[], DracView gameState) {
     // Go through each city, and increment the weight of any seas
     for (i=0;i<NUM_MAP_LOCATIONS;i++) {
         if (idToType(i) == SEA) {
-            weightedMap[i] += 1;
+            weightedMap[i] += 2;
         }
     }
 
