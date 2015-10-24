@@ -71,14 +71,12 @@ void decideDraculaMove(DracView gameState)
     // Weight the map
     weighMap(weightedMap, gameState);
 
-    int l;
-    LocationID *s = shortestPath(GRANADA, ROME, weightedMap, &l,1,1,1);
 
+    // for (i=0;i<6;i++) {
+    //     printf("%d is %d\n", i, fullTrail[i]);
+    // }
 
-    for (i=0;i<l;i++) {
-        printf("%s->", idToName(s[i]));
-    }
-    printf("end\n");
+    // printf("Current location is %d\n", fullTrail[0]);
 
     // Other variables needed
     int inTrail;
@@ -115,38 +113,23 @@ void decideDraculaMove(DracView gameState)
             // Increment the actual number of moves
             numberOfActualMoves++;
 
-            // Add it to the array of possible moves and weigh it 1
+            // Add it to the array of possible moves and weigh it according to the weighted map
             currMove = malloc(sizeof(_moveState));
             currMove->move = currLocation;
             currMove->weight = weightedMap[currLocation];
             moveChoices[moveChoicesNum] = currMove;
             moveChoicesNum++;
-
-            // // If it's a sea, weigh it 2
-            // if (idToType(currLocation) == SEA) {
-            //     currMove->weight = 2;
-            // }
-
-            // // If it's the location of a hunter, weigh it 3
-            // if (whereIs(gameState, PLAYER_LORD_GODALMING) == currLocation ||
-            //     whereIs(gameState, PLAYER_DR_SEWARD) == currLocation ||
-            //     whereIs(gameState, PLAYER_VAN_HELSING) == currLocation ||
-            //     whereIs(gameState, PLAYER_MINA_HARKER) == currLocation) {
-            //     currMove->weight = 3;
-            // }
-
-            // // Set it as the smallest weight if it is
-            // if (currMove->weight < smallestWeight) {
-            //     smallestWeight = currMove->weight;
-            // }
         }
     }
 
+    // Get the smallest weight
     for (i=0;i<numberOfActualMoves;i++) {
-        if (weightedMap[i] < moveChoices[i]->weight) {
+        if (moveChoices[i]->weight < smallestWeight) {
             smallestWeight = moveChoices[i]->weight;
         }
     }
+
+    printf("Number of moves %d\n", numberOfActualMoves);
 
     // If there are no valid moves and it is round 0, then Dracual can 
     // go wherever
@@ -156,15 +139,6 @@ void decideDraculaMove(DracView gameState)
 
     } else if (numberOfActualMoves == 0) {
         // If there are no valid moves, try hide or double back
-
-        // for (i=0;i<TRAIL_SIZE;i++) {
-        //     if (trail[i] > 0 && trail[i] < 70) {
-        //         printf("%s->", idToName(trail[i]));
-        //     } else {
-        //         printf("%d->", trail[i]);
-        //     }
-        // }
-        //printf("\n");
 
         // If there is no hide in the trail, hide
         if (!isHideInTrail(trail)) {
@@ -217,6 +191,7 @@ LocationID getBestMove(moveState *moves, int length, int smallestWeight) {
     for (i=0;i<length;i++) {
         printf("Move is %s, with weight %d\n", idToName(moves[i]->move), moves[i]->weight);
         if (moves[i]->weight <= smallestWeight) {
+            printf("Added to possible moves\n");
             smallestWeightMoves[num] = moves[i]->move;
             //printf("Suitable move of %s with weight %d\n", idToName(moves[i]->move), moves[i]->weight);
             num++;
@@ -227,7 +202,7 @@ LocationID getBestMove(moveState *moves, int length, int smallestWeight) {
     index = r%num;
     LocationID bestMove = smallestWeightMoves[index];
 
-    printf("The best move %d, %d of %d\n", smallestWeightMoves[index], index, num);
+    printf("The best move %d, %d of %d\n", smallestWeightMoves[index], index+1, num);
 
     // Free the array
     free(smallestWeightMoves);

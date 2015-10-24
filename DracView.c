@@ -255,33 +255,16 @@ void giveMeTheFullTrail(DracView currentView, PlayerID player,
     for (i=0;i<TRAIL_SIZE;i++) {
         if (tempTrail[i] < MIN_MAP_LOCATION || tempTrail[i] > MAX_MAP_LOCATION) {
             int *path = getPath(currentView->game, PLAYER_DRACULA);
-            int upto = getUpto(currentView->game, PLAYER_DRACULA);
-            switch (tempTrail[i]) {
-                case HIDE:
-                    trail[i] = path[upto-i-2];
-                    break;
-                case DOUBLE_BACK_1:
-                    trail[i] = path[upto-i-2];
-                    break;
-                case DOUBLE_BACK_2:
-                    trail[i] = path[upto-i-3];
-                    break;
-                case DOUBLE_BACK_3:
-                    trail[i] = path[upto-i-4];
-                    break;
-                case DOUBLE_BACK_4:
-                    trail[i] = path[upto-i-5];
-                    break;
-                case DOUBLE_BACK_5:
-                    trail[i] = path[upto-i-6];
-                    break;
-                case TELEPORT:
-                    trail[i] = CASTLE_DRACULA;
-                    break;
-                default:
-                    trail[i] = tempTrail[i];
-                    break;
+            int upto = getUpto(currentView->game, PLAYER_DRACULA) - i;
+            trail[i] = tempTrail[i];
+            if (trail[i] == TELEPORT) {
+                trail[i] = CASTLE_DRACULA;
+            } else {
+                while (trail[i] < MIN_MAP_LOCATION || trail[i] > MAX_MAP_LOCATION) {
+                    trail[i] = path[upto-(trail[i]-100)]; // 100's the magic number for this
+                    upto = upto - (trail[i]-100);
                 }
+            }
         } else {
             trail[i] = tempTrail[i];
         }
