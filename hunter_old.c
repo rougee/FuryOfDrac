@@ -50,6 +50,9 @@ void decideHunterMove(HunterView gameState)
         return;
     }
 
+    // Get whether a move should be made or if they all should rest
+    //int makeMove = giveMeTheRound(gameState) % 4; // 4 is the magic number here
+
     // Get dracula's trail
     LocationID dracTrail[TRAIL_SIZE];
     giveMeTheTrail(gameState, PLAYER_DRACULA, dracTrail);
@@ -109,9 +112,24 @@ void decideHunterMove(HunterView gameState)
 
     } else {
 
-        // Make a random move
-        move = idToAbbrev(getRandomMove(gameState));
-        printf("Dracula's location unknown, making random move %s\n", idToName(abbrevToID(move)));
+        // Get the player's trail
+        LocationID playerTrail[TRAIL_SIZE];
+        giveMeTheTrail(gameState, whoAmI(gameState), playerTrail);
+
+        // If already rested, and no last known location for dracula, then make a random move
+        if (playerTrail[0] == playerTrail[1]) {          
+
+            move = idToAbbrev(getRandomMove(gameState));
+            printf("Dracula's location unknown, making random move %s\n", idToName(abbrevToID(move)));
+        } else {
+
+            // Collectively rest to get dracula's current location
+            move = idToAbbrev(whereIs(gameState, whoAmI(gameState)));
+
+            printf("Time to rest, resting at %s\n", idToName(abbrevToID(move)));
+        }
+
+        
     }
 
     registerBestPlay(move, "");

@@ -2,7 +2,7 @@
 
 # change these to suit your local C environment
 CC = gcc -g
-CFLAGS = -Wall -Werror
+CFLAGS = -Werror
 # do not change the following line
 BINS = dracula hunter
 # add any other *.o files that your system requires

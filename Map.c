@@ -531,8 +531,6 @@ LocationID *shortestPath(LocationID from, LocationID to, int weightedMap[], int 
         currQueue = nameToID(leaveQueue(q));
         insertInto(s, idToName(currQueue));
 
-        //printf("Currently checking %s\n", idToName(currQueue));
-
         // For each adjacent city add it to the queue, and adjust weights and pred
         for (currAdjacent = g->connections[currQueue]; currAdjacent != NULL; currAdjacent = currAdjacent->next) { 
 
@@ -575,6 +573,7 @@ LocationID *shortestPath(LocationID from, LocationID to, int weightedMap[], int 
 
     // Reverse it (to make it nicer)
     LocationID *shortProperPath = calloc(NUM_MAP_LOCATIONS, sizeof(LocationID));
+
 
     int k=0;
     for (i=*length-1;i>=0;i--) {

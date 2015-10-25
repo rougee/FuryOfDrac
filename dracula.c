@@ -129,8 +129,22 @@ void decideDraculaMove(DracView gameState)
     // go wherever
     printf("Round number is %d\n", giveMeTheRound(gameState));
     if (giveMeTheRound(gameState) == 0) {
-        // Leave the move as the default location (start of game)
 
+        // Pick a loction determined by the weighted map (so far from hunters)
+        
+        // Check if castle dracula is a viable spawn option
+        if (weightedMap[CASTLE_DRACULA] == smallestWeight) {
+            move = "CD";
+        } else {
+
+            // Otherwise go through the weighted map and pick the first smallest weight
+            for (i=0;i<NUM_MAP_LOCATIONS;i++) {
+                if (weightedMap[i] == smallestWeight) {
+                    move = idToAbbrev(i);
+                    break;
+                }
+            }
+        }
     } else if (numberOfActualMoves == 0) {
         // If there are no valid moves, try hide or double back
 
